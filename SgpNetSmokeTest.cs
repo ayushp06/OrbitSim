@@ -30,7 +30,7 @@ public class SgpNetSmokeTest : MonoBehaviour
 
             // Propagate/observe at a known UTC time (or DateTime.UtcNow)
             var utc = new DateTime(2019, 3, 5, 3, 45, 12, DateTimeKind.Utc);
-            var observation = groundStation.Observe(sat, utc);
+            var groundStation = new GroundStation(location);
 
             Debug.Log($"SGP.NET smoke test OK.\nUTC: {utc:o}\n{observation}");
         }
