@@ -376,6 +376,9 @@ public class SatelliteManager : MonoBehaviour
                 sharedSatelliteMarkerMaterial = new Material(shader);
                 sharedSatelliteMarkerMaterial.name = "Shared Satellite Marker Material";
                 sharedSatelliteMarkerMaterial.color = new Color(0.2f, 0.9f, 1f, 1f);
+                sharedSatelliteMarkerMaterial.SetColor("_BaseColor", new Color(0.2f, 0.9f, 1f, 1f));
+                sharedSatelliteMarkerMaterial.SetColor("_EmissionColor", new Color(0.1f, 0.8f, 1f, 1f));
+                sharedSatelliteMarkerMaterial.EnableKeyword("_EMISSION");
             }
 
             material = sharedSatelliteMarkerMaterial;

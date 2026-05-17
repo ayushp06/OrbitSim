@@ -130,14 +130,17 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 2. Press Play in the Unity Editor.
 3. The scene loads the configured TLE file.
 4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
-5. Satellite markers spawn under `Satellites`.
-6. Optional orbit lines spawn under `OrbitVisuals`.
-7. Hover over a satellite marker to view its TLE data in the corner panel.
+5. The current demo configuration spawns one bright point-mass satellite marker and disables orbit paths.
+6. Hover over the satellite marker with the visible mouse crosshair to view its TLE data in the corner panel.
+
+To show more satellites later, raise or clear `SatelliteManager.maxSatellitesForTesting`. Keep `orbitLinesEnabled` off for a point-mass-only view.
 
 ## Desktop Controls
 
 Desktop navigation uses `Assets/Scripts/CameraControls.cs` with Unity's Input System:
 
+- Move the mouse to move the visible crosshair around the screen.
+- Point the crosshair at a satellite marker to hover it and show TLE data.
 - Mouse: look around while cursor is locked.
 - `W`, `A`, `S`, `D`: move camera.
 - `Q`, `E`: move down/up.
@@ -212,8 +215,8 @@ The scene uses a readable visualization scale:
 Important `SatelliteManager` settings:
 
 - `showOnlyLeoSatellites`: filters spawned markers to likely LEO satellites.
-- `maxSatellitesForTesting`: limits marker count for performance testing.
-- `orbitLinesEnabled`: enables or disables orbit lines.
+- `maxSatellitesForTesting`: limits marker count for performance testing. The current demo uses `1`.
+- `orbitLinesEnabled`: enables or disables orbit lines. The current demo keeps this off for point-mass-only satellite visuals.
 - `maxOrbitLines`: caps orbit line count.
 - `satellitePositionUpdateInterval`: controls how often marker positions update.
 - `maxSatellitePositionUpdatesPerFrame`: optionally spreads propagation work across frames.

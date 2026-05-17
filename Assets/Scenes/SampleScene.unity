@@ -723,20 +723,20 @@ MonoBehaviour:
   satellitesParent: {fileID: 120001}
   orbitVisualsParent: {fileID: 130001}
   earthRadiusWorldUnits: 10
-  orbitAltitudeExaggeration: 8
+  orbitAltitudeExaggeration: 18
   timeScale: 120
   simulationSpeedMultiplier: 1
   simulationPaused: 0
-  maxSatellitesForTesting: 0
-  orbitLinesEnabled: 1
-  satellitePositionUpdateInterval: 0.05
+  maxSatellitesForTesting: 1
+  orbitLinesEnabled: 0
+  satellitePositionUpdateInterval: 0
   maxSatellitePositionUpdatesPerFrame: 0
   showOnlyLeoSatellites: 1
   maxLeoAltitudeKilometers: 2000
   minLeoMeanMotionRevsPerDay: 11.25
   enableKeyboardTimeControls: 1
   speedStepMultiplier: 2
-  markerScale: 0.35
+  markerScale: 0.65
   satelliteMarkerMaterial: {fileID: 0}
   shareMarkerMaterial: 1
   orbitLineSegments: 96
@@ -764,6 +764,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   maxHoverDistance: 500
+  showDesktopCrosshair: 1
+  crosshairColor: {r: 0.95, g: 1, b: 1, a: 0.9}
+  crosshairSize: 20
+  crosshairThickness: 2
   highlightColor: {r: 0.2, g: 1, b: 1, a: 1}
   highlightedScaleMultiplier: 1.6
   onHoveredSatelliteChanged:
