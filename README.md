@@ -1,42 +1,95 @@
 # OrbitSim
 
-OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. It loads local TLE data, propagates satellite positions, renders orbit markers and optional orbit lines, and shows detailed TLE information when the user hovers over a satellite.
+OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The simulation loads local Two-Line Element data, filters likely LEO satellites, propagates their positions around Earth, renders satellite markers and optional orbit lines, and shows TLE details when a user hovers over a satellite.
 
-## Project Basics
+## Required Unity Version
 
-- Unity version: `6000.3.7f1`
-- Main scene: `Assets/Scenes/SampleScene.unity`
-- Sample TLE data: `Assets/StreamingAssets/TLE/leo-sample.tle`
-- Earth texture/material: `Assets/Textures/EarthTexture1.jpg`, `Assets/Textures/Earth_Mat.mat`
-- SGP4 library: `Assets/Packages/SGP.NET.1.4.0/lib/netstandard2.0/SGP.NET.dll`
+Open this project with Unity:
 
-The project currently supports desktop testing with mouse hover and keyboard time controls. The scene also includes an `XR` hierarchy root and VR-aware UI behavior, but full OpenXR/XR Interaction Toolkit package setup is still a future integration step.
+```text
+6000.3.7f1
+```
 
-## Scene Structure
+The version is recorded in `ProjectSettings/ProjectVersion.txt`.
 
-`SampleScene.unity` is organized under a clear `SceneRoot` hierarchy:
+## Required Packages
 
-- `Earth`: Earth transform and globe mesh.
-- `Satellites`: parent for spawned satellite marker objects.
-- `OrbitVisuals`: parent for orbit line renderers.
-- `XR`: player rig/camera organization for desktop and future VR setup.
+Unity Package Manager dependencies are defined in `Packages/manifest.json`. The important project packages are:
+
+- `com.unity.inputsystem` `1.18.0`: desktop camera and keyboard controls.
+- `com.unity.ugui` `2.0.0`: hover TLE information panel.
+- `com.unity.visualscripting` `1.9.9`: present in the project, not central to the satellite simulation.
+- `com.unity.modules.physics`: raycast hover detection and marker colliders.
+- `com.unity.modules.vr` and `com.unity.modules.xr`: base Unity XR modules.
+
+SGP4 propagation is supplied by the checked-in SGP.NET DLL:
+
+```text
+Assets/Packages/SGP.NET.1.4.0/lib/netstandard2.0/SGP.NET.dll
+```
+
+OpenXR, XR Plugin Management, and XR Interaction Toolkit are not currently installed. The scene has an `XR` hierarchy and VR-aware code paths, but production VR controller support still needs those packages configured for the target headset.
+
+## Opening The Unity Project
+
+1. Open Unity Hub.
+2. Select **Add project from disk**.
+3. Choose the repository folder:
+
+```text
+D:\Unity\EarthSatOrbitSim
+```
+
+4. Open the project with Unity `6000.3.7f1`.
+5. Open the main scene:
+
+```text
+Assets/Scenes/SampleScene.unity
+```
+
+## Scene Overview
+
+`Assets/Scenes/SampleScene.unity` is organized under `SceneRoot`:
+
+- `Earth`: Earth transform and textured globe mesh.
+- `Satellites`: parent for spawned satellite markers.
+- `OrbitVisuals`: parent for generated orbit line renderers.
+- `XR`: desktop camera/player organization and future VR rig location.
 - `UI`: runtime TLE information panel placeholder.
-- `Managers`: simulation manager objects and startup helpers.
+- `Managers`: simulation components and bootstrap objects.
 
-`SimulationManager` hosts the core runtime components:
+The main runtime object is `Managers/SimulationManager`, which contains:
 
 - `TleLoader`
 - `SatelliteManager`
 - `SatelliteHoverController`
 
-## Core Systems
+## TLE Data Loading
 
-### TLE Loading
+TLE loading is handled by:
 
-`Assets/Scripts/SatelliteTleData.cs` stores raw and parsed TLE fields:
+```text
+Assets/Scripts/TleLoader.cs
+Assets/Scripts/SatelliteTleData.cs
+```
+
+`TleLoader` reads a local text file from `StreamingAssets`. The default configured path is:
+
+```text
+Assets/StreamingAssets/TLE/leo-sample.tle
+```
+
+The loader expects standard 3-line TLE records:
+
+```text
+SATELLITE NAME
+1 NNNNNU ...
+2 NNNNN ...
+```
+
+`SatelliteTleData` stores the raw lines and parses:
 
 - satellite name
-- line 1 and line 2
 - NORAD catalog ID
 - classification
 - epoch
@@ -47,135 +100,143 @@ The project currently supports desktop testing with mouse hover and keyboard tim
 - mean anomaly
 - mean motion
 
-`Assets/Scripts/TleLoader.cs` loads standard 3-line TLE records from StreamingAssets:
+Malformed records are skipped or reported with warnings so valid entries can continue loading.
+
+## Adding New TLE Files
+
+Place new TLE text files under:
 
 ```text
-satellite name
-line 1
-line 2
+Assets/StreamingAssets/TLE/
 ```
 
-Malformed entries are skipped or warned about so the simulation can keep running with valid records.
+Then select `Managers/SimulationManager` in `SampleScene.unity` and update:
 
-### Orbit Propagation
+```text
+TleLoader.streamingAssetsRelativePath
+```
 
-`Assets/Scripts/SatelliteManager.cs` uses SGP.NET when possible to predict satellite ECI positions from each TLE. If SGP4 setup or prediction fails for an entry, it falls back to a lightweight Keplerian visualization based on parsed TLE orbital elements.
+For example:
 
-The fallback is approximate. It ignores drag, J2/precession, decay, and other perturbation effects handled by full SGP4. It is intended for visual continuity, not authoritative orbital analysis.
+```text
+TLE/my-new-catalog.tle
+```
 
-### Satellite Rendering
+Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded markers while testing large catalogs.
 
-`SatelliteManager` loads TLE entries, optionally filters them to likely LEO satellites, and spawns one lightweight marker per satellite under `Satellites`. Each marker receives `Assets/Scripts/SatelliteInfo.cs`, which stores the satellite's parsed TLE data for hover/UI use.
+## Running The Scene
 
-Optional orbit lines are generated under `OrbitVisuals`. To protect performance with large catalogs, orbit lines are capped by `maxOrbitLines` and marker updates are centralized in one manager instead of per-object update loops.
+1. Open `Assets/Scenes/SampleScene.unity`.
+2. Press Play in the Unity Editor.
+3. The scene loads the configured TLE file.
+4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
+5. Satellite markers spawn under `Satellites`.
+6. Optional orbit lines spawn under `OrbitVisuals`.
+7. Hover over a satellite marker to view its TLE data in the corner panel.
 
-### Hover Interaction
+## Desktop Controls
 
-`Assets/Scripts/SatelliteHoverController.cs` detects hovered satellites.
+Desktop navigation uses `Assets/Scripts/CameraControls.cs` with Unity's Input System:
 
-- Desktop mode uses mouse raycasts from the main camera.
-- VR mode can use configured ray origin transforms when XR controller rays are available.
-- Hovered markers are highlighted visually.
-- Hover changes are published through a UnityEvent and a static C# event.
+- Mouse: look around while cursor is locked.
+- `W`, `A`, `S`, `D`: move camera.
+- `Q`, `E`: move down/up.
+- `Left Shift`: movement boost.
+- `Escape`: toggle cursor lock.
 
-### TLE UI
-
-`Assets/Scripts/SatelliteTleInfoPanel.cs` builds a readable runtime UI panel.
-
-- Desktop mode uses a screen-space corner panel.
-- VR mode can switch to a world-space HUD attached in front of the player camera.
-- When nothing is hovered, it shows: `Hover over a satellite to view TLE data.`
-- When a satellite is hovered, it displays the satellite name, NORAD ID, raw TLE lines, inclination, RAAN, eccentricity, argument of perigee, mean anomaly, mean motion, and epoch.
-
-## Scale Model
-
-The scene uses a readable visualization scale, not a physically exact distance scale.
-
-- `SatelliteManager.earthRadiusWorldUnits` maps Earth's real radius, 6371 km, to the globe radius in Unity world units.
-- `SatelliteManager.orbitAltitudeExaggeration` multiplies only the altitude above Earth, so LEO satellites are visible above the globe.
-- Satellite directions come from SGP4 when available, with the Keplerian fallback used for orbit-line previews and propagation failures. This keeps satellites distributed around the globe instead of clustering them in an artificial display band.
-- Set `orbitAltitudeExaggeration` to `1` for a physically proportional altitude scale.
-
-## LEO Filtering
-
-`SatelliteManager.showOnlyLeoSatellites` limits spawned markers to satellites that can be classified as likely LEO from parsed TLE fields. The classifier uses:
-
-- mean motion
-- orbital period
-- approximate altitude derived from mean motion
-
-Entries without enough parsed orbital data are excluded when this filter is enabled. Disable `showOnlyLeoSatellites` to show all valid TLE entries loaded by `TleLoader`.
-
-## Time Controls
-
-Desktop testing supports simple keyboard time controls through Unity's Input System:
+Simulation time controls are handled by `SatelliteManager`:
 
 - `Space`: pause or resume simulation time.
 - `=` or numpad `+`: multiply simulation speed by `speedStepMultiplier`.
 - `-` or numpad `-`: divide simulation speed by `speedStepMultiplier`.
 
-The same controls are exposed as public methods on `SatelliteManager` for future VR UI buttons or controller bindings:
+## VR Controls
 
-- `PlaySimulation()`
-- `PauseSimulation()`
-- `ToggleSimulationPaused()`
-- `SetSimulationSpeedMultiplier(float multiplier)`
-- `MultiplySimulationSpeed(float multiplier)`
+The project currently includes VR-aware structure but not a complete production XR setup.
 
-## Inspector Settings
+Current behavior:
 
-Important `SatelliteManager` fields:
+- `SatelliteTleInfoPanel` can switch to a world-space HUD when XR is active.
+- `SatelliteHoverController` supports VR-style ray hover if ray origin transforms are assigned.
+- No grab interaction is required for satellites.
 
-- `satelliteMarkerPrefab`: optional custom marker prefab; falls back to a primitive sphere.
-- `earthReference`: Earth center transform.
-- `earthVisual`: visual globe transform to scale from `earthRadiusWorldUnits`.
-- `earthRadiusWorldUnits`: Unity radius of Earth.
-- `orbitAltitudeExaggeration`: visual multiplier for altitude above Earth.
-- `timeScale`: base simulation seconds per real second.
-- `simulationSpeedMultiplier`: runtime speed multiplier.
-- `simulationPaused`: pauses simulation time when enabled.
-- `satellitePositionUpdateInterval`: seconds between satellite position updates. Raising this lowers CPU cost for large catalogs at the cost of less frequent motion updates.
-- `maxSatellitePositionUpdatesPerFrame`: optional cap for spreading propagation work across frames. Set to `0` to update all satellites together.
-- `showOnlyLeoSatellites`: toggles LEO filtering.
-- `maxSatellitesForTesting`: limits spawned satellites for testing when greater than zero.
-- `orbitLinesEnabled`: enables/disables orbit line creation.
-- `maxOrbitLines`: caps orbit line count for performance.
-- `shareMarkerMaterial`: assigns a shared instancing-enabled material to markers to avoid per-marker material instances.
+Required future package/setup work for full VR controls:
 
-## Performance Notes
+- Install and configure XR Plugin Management.
+- Install and configure OpenXR for the target headset.
+- Install XR Interaction Toolkit if controller ray interactors are desired.
+- Assign VR controller ray origin transforms to `SatelliteHoverController.vrRayOrigins`.
+- Bind pause/play and speed controls to VR UI buttons or controller inputs.
 
-Satellite markers are spawned once and updated through `SatelliteManager` instead of through one update loop per marker. Runtime marker transforms are cached when markers are created, so the position hot path does not call `GetComponent`.
+## Hover-To-View-TLE
 
-For large catalogs:
+Hover behavior is implemented by:
 
-- Use `maxSatellitesForTesting` while tuning.
-- Keep `orbitLinesEnabled` off or reduce `maxOrbitLines`.
-- Increase `satellitePositionUpdateInterval` to reduce propagation frequency.
-- Set `maxSatellitePositionUpdatesPerFrame` to spread satellite updates across multiple frames.
-- Keep `shareMarkerMaterial` enabled so primitive markers can use a shared instancing-capable material.
+```text
+Assets/Scripts/SatelliteHoverController.cs
+Assets/Scripts/SatelliteInfo.cs
+Assets/Scripts/SatelliteTleInfoPanel.cs
+```
 
-## Running The Project
+Flow:
 
-1. Open the repository in Unity `6000.3.7f1`.
-2. Open `Assets/Scenes/SampleScene.unity`.
-3. Enter Play Mode.
-4. Use the desktop fly camera controls to navigate the globe.
-5. Hover over a satellite marker to view TLE data in the corner panel.
-6. Use the time controls to pause or change simulation speed.
+1. `SatelliteManager` spawns one marker per loaded satellite.
+2. Each marker receives a `SatelliteInfo` component containing its parsed `SatelliteTleData`.
+3. `SatelliteHoverController` raycasts against satellite markers.
+4. The hovered marker is highlighted.
+5. Hover changes are emitted through a UnityEvent and a static C# event.
+6. `SatelliteTleInfoPanel` listens for hover changes.
+7. When no satellite is hovered, the panel shows:
 
-## Validation Notes
+```text
+Hover over a satellite to view TLE data.
+```
 
-The project has been validated with:
+8. When a satellite is hovered, the panel displays name, NORAD ID, TLE lines, inclination, RAAN, eccentricity, argument of perigee, mean anomaly, mean motion, and epoch.
 
-- `dotnet build EarthSatOrbitSim.sln`
-- sample TLE data classification checks
-- scene scans for missing script references
+## Orbit Propagation And Scale
 
-The current local `dotnet build` succeeds with 0 errors. Unity/.NET assembly conflict warnings for `System.Net.Http` and `System.Security.Cryptography.Algorithms` are present from package/editor references and do not currently block compilation.
+`SatelliteManager` uses SGP.NET when possible to predict satellite ECI positions from TLE data. If SGP4 setup or prediction fails for an entry, the manager falls back to a lightweight Keplerian visualization based on parsed TLE orbital elements.
 
-## Current Limitations
+The fallback is approximate and is intended for visual continuity, not authoritative orbital analysis. It ignores drag, J2/precession, decay, and other perturbation effects handled by full SGP4.
 
-- Full production XR setup is not complete. OpenXR, XR Plugin Management, and XR Interaction Toolkit still need to be installed/configured for target hardware.
-- The Keplerian fallback and orbit-line previews are visual approximations.
-- Large catalogs may need batching, object pooling, update throttling, and selective orbit rendering before VR-scale performance is acceptable.
-- The current sample dataset is intentionally small and stored locally for testing.
+The scene uses a readable visualization scale:
+
+- `earthRadiusWorldUnits` maps Earth's real radius, 6371 km, to the globe radius in Unity units.
+- `orbitAltitudeExaggeration` multiplies only altitude above Earth so LEO satellites are visible.
+- Satellite directions come from SGP4 or the Keplerian fallback, preserving distribution around the globe.
+- Set `orbitAltitudeExaggeration` to `1` for physically proportional altitude scale.
+
+## Performance Settings
+
+Important `SatelliteManager` settings:
+
+- `showOnlyLeoSatellites`: filters spawned markers to likely LEO satellites.
+- `maxSatellitesForTesting`: limits marker count for performance testing.
+- `orbitLinesEnabled`: enables or disables orbit lines.
+- `maxOrbitLines`: caps orbit line count.
+- `satellitePositionUpdateInterval`: controls how often marker positions update.
+- `maxSatellitePositionUpdatesPerFrame`: optionally spreads propagation work across frames.
+- `shareMarkerMaterial`: uses a shared instancing-capable material for markers.
+
+Markers are spawned once and updated centrally. Marker transforms are cached so the hot update path avoids unnecessary `GetComponent` calls.
+
+## Known Limitations
+
+- Full VR package setup is not complete. OpenXR, XR Plugin Management, and XR Interaction Toolkit still need to be added for production VR controller workflows.
+- SGP.NET is available and used when possible, but orbit-line previews and fallback propagation are approximate Keplerian visualizations.
+- The scale model intentionally exaggerates LEO altitude unless `orbitAltitudeExaggeration` is set to `1`.
+- The included TLE file is a small sample dataset, not a complete live catalog.
+- There is no live network TLE download/update system.
+- Very large catalogs may still need pooling, GPU instanced mesh rendering, culling, and deeper profiling for VR frame rates.
+
+## Future Improvements
+
+- Add full OpenXR and XR Interaction Toolkit setup.
+- Add VR controller UI for pause/play, speed, LEO filtering, and selected satellite details.
+- Add live or user-imported TLE catalog management.
+- Add object pooling for satellite markers and orbit lines.
+- Replace marker GameObjects with GPU-instanced mesh rendering for very large catalogs.
+- Add selective orbit rendering for hovered/selected satellites only.
+- Add tests for TLE parsing, LEO classification, and coordinate conversion.
+- Add build targets and profiling notes for the intended VR headset.
