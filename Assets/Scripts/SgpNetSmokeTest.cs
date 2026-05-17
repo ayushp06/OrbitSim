@@ -1,10 +1,8 @@
 ﻿using System;
+using SGPdotNET.CoordinateSystem;
+using SGPdotNET.Observation;
+using SGPdotNET.Util;
 using UnityEngine;
-
-// IMPORTANT:
-// You will almost certainly need a using directive for SGP.NET's namespace.
-// After you paste this in, click "Satellite" and use your IDE's quick-fix
-// (“Add using …”) to import the correct namespace.
 
 public class SgpNetSmokeTest : MonoBehaviour
 {

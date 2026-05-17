@@ -1,10 +1,8 @@
 ﻿using System;
+using SGPdotNET.CoordinateSystem;
+using SGPdotNET.Observation;
+using SGPdotNET.Util;
 using UnityEngine;
-
-// IMPORTANT:
-// You will almost certainly need a using directive for SGP.NET's namespace.
-// After you paste this in, click "Satellite" and use your IDE's quick-fix
-// (“Add using …”) to import the correct namespace.
 
 public class SgpNetSmokeTest : MonoBehaviour
 {
@@ -26,11 +24,10 @@ public class SgpNetSmokeTest : MonoBehaviour
                 0
             );
 
-            var groundStation = new GroundStation(location);
-
             // Propagate/observe at a known UTC time (or DateTime.UtcNow)
             var utc = new DateTime(2019, 3, 5, 3, 45, 12, DateTimeKind.Utc);
             var groundStation = new GroundStation(location);
+            var observation = groundStation.Observe(sat, utc);
 
             Debug.Log($"SGP.NET smoke test OK.\nUTC: {utc:o}\n{observation}");
         }
