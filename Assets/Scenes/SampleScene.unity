@@ -689,19 +689,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 161000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2d3e52773c24747a7e6f52d4724ea25, type: 3}
+  m_Script: {fileID: 11500000, guid: 27b663e7ab184a60905b61ddc259e0db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   tleLoader: {fileID: 161002}
-  loadOnStart: 1
-  earthCenter: {fileID: 110001}
-  satellitesParent: {fileID: 120001}
   satelliteMarkerPrefab: {fileID: 0}
-  simulationTimeKind: 1
-  timeScale: 120
+  earthReference: {fileID: 110001}
+  satellitesParent: {fileID: 120001}
+  orbitVisualsParent: {fileID: 130001}
+  orbitScale: 1
   earthRadiusWorldUnits: 10
+  timeScale: 120
+  maxSatellitesForTesting: 0
+  orbitLinesEnabled: 1
   markerScale: 0.35
-  preferSgp4Propagation: 1
+  orbitLineSegments: 96
+  maxOrbitLines: 64
+  orbitLineWidth: 0.025
+  orbitLineColor: {r: 0.25, g: 0.8, b: 1, a: 0.45}
+  orbitLineMaterial: {fileID: 0}
 --- !u!1 &162000
 GameObject:
   m_ObjectHideFlags: 0
