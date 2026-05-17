@@ -576,6 +576,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 151001}
+  - component: {fileID: 151002}
   m_Layer: 0
   m_Name: TLE Info Panel Placeholder
   m_TagString: Untagged
@@ -598,6 +599,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 150001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &151002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a65a8d9b470c4566ab480a78af4b4f8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayMode: 2
+  targetCamera: {fileID: 142002}
+  panelSize: {x: 460, y: 390}
+  screenMargin: {x: 24, y: 24}
+  worldSpaceLocalPosition: {x: 0.55, y: 0.05, z: 2.2}
+  worldSpacePanelSize: {x: 520, y: 440}
+  worldSpaceScale: 0.0022
+  panelColor: {r: 0.02, g: 0.03, b: 0.05, a: 0.82}
+  textColor: {r: 0.92, g: 0.96, b: 1, a: 1}
+  fontSize: 15
 --- !u!1 &160000
 GameObject:
   m_ObjectHideFlags: 0
