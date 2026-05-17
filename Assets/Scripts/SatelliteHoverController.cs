@@ -45,13 +45,15 @@ public class SatelliteHoverController : MonoBehaviour
     SatelliteInfo hoveredSatellite;
     Transform highlightedTransform;
     Vector3 originalScale;
-    readonly MaterialPropertyBlock highlightPropertyBlock = new MaterialPropertyBlock();
+    MaterialPropertyBlock highlightPropertyBlock;
     RectTransform crosshairRect;
 
     public SatelliteInfo HoveredSatellite => hoveredSatellite;
 
     void Awake()
     {
+        highlightPropertyBlock = new MaterialPropertyBlock();
+
         if (mouseHoverCamera == null)
         {
             mouseHoverCamera = Camera.main;
@@ -236,6 +238,11 @@ public class SatelliteHoverController : MonoBehaviour
         if (renderer == null)
         {
             return;
+        }
+
+        if (highlightPropertyBlock == null)
+        {
+            highlightPropertyBlock = new MaterialPropertyBlock();
         }
 
         highlightPropertyBlock.Clear();

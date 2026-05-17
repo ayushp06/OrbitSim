@@ -20,14 +20,15 @@ public class SatelliteTleInfoPanel : MonoBehaviour
     [Header("Display")]
     public DisplayMode displayMode = DisplayMode.Auto;
     public Camera targetCamera;
+    public bool showPanelWhenNotHovering = false;
 
     [Header("Desktop Layout")]
-    public Vector2 panelSize = new Vector2(460f, 390f);
+    public Vector2 panelSize = new Vector2(520f, 500f);
     public Vector2 screenMargin = new Vector2(24f, 24f);
 
     [Header("VR Layout")]
     public Vector3 worldSpaceLocalPosition = new Vector3(0.55f, 0.05f, 2.2f);
-    public Vector2 worldSpacePanelSize = new Vector2(520f, 440f);
+    public Vector2 worldSpacePanelSize = new Vector2(560f, 520f);
     public float worldSpaceScale = 0.0022f;
 
     [Header("Style")]
@@ -76,12 +77,22 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             return;
         }
 
+        SetPanelVisible(true);
         contentText.text = BuildSatelliteText(satelliteInfo.TleData);
     }
 
     void ShowDefaultMessage()
     {
         contentText.text = DefaultMessage;
+        SetPanelVisible(showPanelWhenNotHovering);
+    }
+
+    void SetPanelVisible(bool visible)
+    {
+        if (panelRect != null)
+        {
+            panelRect.gameObject.SetActive(visible);
+        }
     }
 
     void BuildPanel()
@@ -200,7 +211,12 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         var builder = new StringBuilder(768);
         builder.AppendLine(data.satelliteName);
         builder.AppendLine();
+        AppendValue(builder, "Country of Origin", data.hasCountryOfOrigin, data.countryOfOrigin);
+        AppendValue(builder, "Owner / Operator", data.hasOwnerOperator, data.ownerOperator);
+        AppendValue(builder, "Mission", data.hasMission, data.mission);
         AppendValue(builder, "NORAD ID", data.hasNoradCatalogId, data.noradCatalogId.ToString(CultureInfo.InvariantCulture));
+        AppendValue(builder, "International Designator", data.hasInternationalDesignator, data.internationalDesignator);
+        AppendValue(builder, "Classification", data.hasClassification, data.classification);
         AppendValue(builder, "Epoch", data.hasEpoch, data.epoch);
         AppendValue(builder, "Inclination", data.hasInclination, FormatDegrees(data.inclination));
         AppendValue(builder, "RAAN", data.hasRaan, FormatDegrees(data.raan));
@@ -208,6 +224,11 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         AppendValue(builder, "Arg Perigee", data.hasArgumentOfPerigee, FormatDegrees(data.argumentOfPerigee));
         AppendValue(builder, "Mean Anomaly", data.hasMeanAnomaly, FormatDegrees(data.meanAnomaly));
         AppendValue(builder, "Mean Motion", data.hasMeanMotion, data.meanMotion.ToString("0.00000000", CultureInfo.InvariantCulture) + " rev/day");
+        if (!string.IsNullOrWhiteSpace(data.dataSource))
+        {
+            AppendValue(builder, "TLE Source", true, data.dataSource);
+        }
+
         builder.AppendLine();
         builder.AppendLine("TLE Line 1:");
         builder.AppendLine(data.line1);

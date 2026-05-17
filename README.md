@@ -1,6 +1,6 @@
 # OrbitSim
 
-OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The simulation loads local Two-Line Element data, filters likely LEO satellites, propagates their positions around Earth, renders satellite markers and optional orbit lines, and shows TLE details when a user hovers over a satellite.
+OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene simulates NOAA 19, a real U.S. NOAA weather satellite, by pulling its Two-Line Element data from CelesTrak at runtime. If the runtime request fails, the simulation falls back to the bundled NOAA 19 TLE under StreamingAssets. The app propagates the satellite position around Earth, renders the satellite marker, and shows origin and TLE details when a user hovers over the satellite.
 
 ## Required Unity Version
 
@@ -73,11 +73,19 @@ Assets/Scripts/TleLoader.cs
 Assets/Scripts/SatelliteTleData.cs
 ```
 
-`TleLoader` reads a local text file from `StreamingAssets`. The default configured path is:
+`TleLoader` can download a CelesTrak GP TLE in Play mode and can fall back to a local text file from `StreamingAssets`. The default runtime URL is:
+
+```text
+https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=TLE
+```
+
+The default fallback path is:
 
 ```text
 Assets/StreamingAssets/TLE/leo-sample.tle
 ```
+
+Both are configured on `Managers/SimulationManager`.
 
 The loader expects standard 3-line TLE records:
 
@@ -91,6 +99,7 @@ SATELLITE NAME
 
 - satellite name
 - NORAD catalog ID
+- international designator
 - classification
 - epoch
 - inclination
@@ -99,6 +108,12 @@ SATELLITE NAME
 - argument of perigee
 - mean anomaly
 - mean motion
+
+The hover panel also shows known catalog metadata for the selected sample satellite, including country of origin, owner/operator, and mission. The current default is NOAA 19:
+
+- Country of origin: United States
+- Owner/operator: NOAA
+- Mission: NOAA 19 polar-orbiting weather satellite
 
 Malformed records are skipped or reported with warnings so valid entries can continue loading.
 
@@ -128,10 +143,10 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 
 1. Open `Assets/Scenes/SampleScene.unity`.
 2. Press Play in the Unity Editor.
-3. The scene loads the configured TLE file.
+3. The scene requests the configured NOAA 19 TLE from CelesTrak, then falls back to the local NOAA 19 TLE if needed.
 4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
 5. The current demo configuration spawns one bright point-mass satellite marker and disables orbit paths.
-6. Hover over the satellite marker with the visible mouse crosshair to view its TLE data in the corner panel.
+6. Hover over the satellite marker with the visible mouse crosshair to view country of origin, operator, mission, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
 
 To show more satellites later, raise or clear `SatelliteManager.maxSatellitesForTesting`. Keep `orbitLinesEnabled` off for a point-mass-only view.
 
@@ -196,7 +211,7 @@ Flow:
 Hover over a satellite to view TLE data.
 ```
 
-8. When a satellite is hovered, the panel displays name, NORAD ID, TLE lines, inclination, RAAN, eccentricity, argument of perigee, mean anomaly, mean motion, and epoch.
+8. When a satellite is hovered, the panel displays name, country of origin, owner/operator, mission, NORAD ID, international designator, classification, epoch, inclination, RAAN, eccentricity, argument of perigee, mean anomaly, mean motion, source, and raw TLE lines.
 
 ## Orbit Propagation And Scale
 
@@ -230,8 +245,8 @@ Markers are spawned once and updated centrally. Marker transforms are cached so 
 - Full VR package setup is not complete. OpenXR, XR Plugin Management, and XR Interaction Toolkit still need to be added for production VR controller workflows.
 - SGP.NET is available and used when possible, but orbit-line previews and fallback propagation are approximate Keplerian visualizations.
 - The scale model intentionally exaggerates LEO altitude unless `orbitAltitudeExaggeration` is set to `1`.
-- The included TLE file is a small sample dataset, not a complete live catalog.
-- There is no live network TLE download/update system.
+- The included TLE file is a one-satellite NOAA 19 fallback, not a complete live catalog.
+- Runtime TLE download depends on network access to CelesTrak; offline runs use the local fallback.
 - Very large catalogs may still need pooling, GPU instanced mesh rendering, culling, and deeper profiling for VR frame rates.
 
 ## Future Improvements

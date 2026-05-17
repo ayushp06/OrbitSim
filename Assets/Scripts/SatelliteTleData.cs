@@ -7,12 +7,25 @@ public class SatelliteTleData
     public string satelliteName;
     public string line1;
     public string line2;
+    public string dataSource;
 
     public bool hasNoradCatalogId;
     public int noradCatalogId;
 
+    public bool hasInternationalDesignator;
+    public string internationalDesignator;
+
     public bool hasClassification;
     public string classification;
+
+    public bool hasCountryOfOrigin;
+    public string countryOfOrigin;
+
+    public bool hasOwnerOperator;
+    public string ownerOperator;
+
+    public bool hasMission;
+    public string mission;
 
     public bool hasEpoch;
     public string epoch;
@@ -65,6 +78,7 @@ public class SatelliteTleData
         }
 
         TryParseInt(Slice(data.line1, 2, 5), out data.noradCatalogId, out data.hasNoradCatalogId);
+        TryParseInternationalDesignator(Slice(data.line1, 9, 8), out data.internationalDesignator, out data.hasInternationalDesignator);
         TryParseClassification(Slice(data.line1, 7, 1), out data.classification, out data.hasClassification);
         TryParseEpoch(Slice(data.line1, 18, 14), out data.epoch, out data.hasEpoch);
 
@@ -81,6 +95,7 @@ public class SatelliteTleData
             warning = $"{data.satelliteName}: TLE loaded, but one or more optional orbital fields could not be parsed.";
         }
 
+        data.ApplyKnownCatalogMetadata();
         return true;
     }
 
@@ -131,6 +146,35 @@ public class SatelliteTleData
         success = parsed.Length > 0;
     }
 
+    static void TryParseString(string value, out string parsed, out bool success)
+    {
+        parsed = value.Trim();
+        success = parsed.Length > 0;
+    }
+
+    static void TryParseInternationalDesignator(string value, out string parsed, out bool success)
+    {
+        parsed = value.Trim();
+        success = parsed.Length > 0;
+
+        if (!success || parsed.Length < 5)
+        {
+            return;
+        }
+
+        string launchYear = parsed.Substring(0, 2);
+        string launchNumber = parsed.Substring(2, 3);
+        string piece = parsed.Substring(5).Trim();
+
+        if (!int.TryParse(launchYear, NumberStyles.Integer, CultureInfo.InvariantCulture, out int shortYear))
+        {
+            return;
+        }
+
+        int fullYear = shortYear < 57 ? 2000 + shortYear : 1900 + shortYear;
+        parsed = $"{fullYear}-{launchNumber}{piece}";
+    }
+
     static void TryParseDouble(string value, out double parsed, out bool success)
     {
         success = double.TryParse(value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out parsed);
@@ -167,5 +211,38 @@ public class SatelliteTleData
         DateTime epochUtc = new DateTime(fullYear, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(dayOfYear - 1d);
         parsed = epochUtc.ToString("o", CultureInfo.InvariantCulture);
         success = true;
+    }
+
+    void ApplyKnownCatalogMetadata()
+    {
+        if (!hasNoradCatalogId)
+        {
+            return;
+        }
+
+        switch (noradCatalogId)
+        {
+            case 33591:
+                SetMetadata("United States", "NOAA", "NOAA 19 polar-orbiting weather satellite");
+                break;
+            case 25544:
+                SetMetadata("International", "International Space Station partners", "Crewed low Earth orbit space station");
+                break;
+            case 20580:
+                SetMetadata("United States", "NASA / ESA", "Hubble Space Telescope");
+                break;
+        }
+    }
+
+    void SetMetadata(string country, string operatorName, string missionDescription)
+    {
+        countryOfOrigin = country;
+        hasCountryOfOrigin = !string.IsNullOrWhiteSpace(countryOfOrigin);
+
+        ownerOperator = operatorName;
+        hasOwnerOperator = !string.IsNullOrWhiteSpace(ownerOperator);
+
+        mission = missionDescription;
+        hasMission = !string.IsNullOrWhiteSpace(mission);
     }
 }

@@ -614,10 +614,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayMode: 2
   targetCamera: {fileID: 142002}
-  panelSize: {x: 460, y: 390}
+  showPanelWhenNotHovering: 0
+  panelSize: {x: 520, y: 500}
   screenMargin: {x: 24, y: 24}
   worldSpaceLocalPosition: {x: 0.55, y: 0.05, z: 2.2}
-  worldSpacePanelSize: {x: 520, y: 440}
+  worldSpacePanelSize: {x: 560, y: 520}
   worldSpaceScale: 0.0022
   panelColor: {r: 0.02, g: 0.03, b: 0.05, a: 0.82}
   textColor: {r: 0.92, g: 0.96, b: 1, a: 1}
@@ -702,9 +703,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   streamingAssetsRelativePath: TLE/leo-sample.tle
+  downloadTleAtRuntime: 1
+  tleUrl: https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=TLE
+  fallbackToStreamingAssets: 1
   tleTextOverride: {fileID: 0}
   loadOnAwake: 0
   satellites: []
+  lastLoadedSource:
 --- !u!114 &161003
 MonoBehaviour:
   m_ObjectHideFlags: 0

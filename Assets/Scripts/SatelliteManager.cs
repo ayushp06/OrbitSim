@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using SGPdotNET.Observation;
 using UnityEngine;
@@ -76,7 +77,7 @@ public class SatelliteManager : MonoBehaviour
     void Start()
     {
         ApplyEarthVisualScale();
-        LoadAndSpawnSatellites();
+        StartCoroutine(LoadAndSpawnSatellitesAsync());
     }
 
     void Update()
@@ -129,7 +130,32 @@ public class SatelliteManager : MonoBehaviour
         }
 
         tleLoader.LoadConfiguredSource();
+        SpawnLoadedSatellites();
+    }
 
+    public IEnumerator LoadAndSpawnSatellitesAsync()
+    {
+        ClearRuntimeSatellites();
+        CacheSceneReferences();
+        ClearOrbitVisuals();
+
+        if (tleLoader == null)
+        {
+            tleLoader = GetComponent<TleLoader>();
+        }
+
+        if (tleLoader == null)
+        {
+            Debug.LogWarning("SatelliteManager has no TleLoader assigned.");
+            yield break;
+        }
+
+        yield return tleLoader.LoadConfiguredSourceAsync();
+        SpawnLoadedSatellites();
+    }
+
+    void SpawnLoadedSatellites()
+    {
         satellites.Capacity = Mathf.Max(satellites.Capacity, maxSatellitesForTesting > 0 ? maxSatellitesForTesting : tleLoader.Satellites.Count);
 
         int filteredOutCount = 0;

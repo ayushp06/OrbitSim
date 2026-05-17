@@ -1,11 +1,22 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class TleLoader : MonoBehaviour
 {
     [Tooltip("Path under StreamingAssets used when no explicit TextAsset is assigned.")]
     public string streamingAssetsRelativePath = "TLE/leo-sample.tle";
+
+    [Tooltip("When enabled, Play mode downloads the configured satellite TLE before falling back to StreamingAssets.")]
+    public bool downloadTleAtRuntime = true;
+
+    [Tooltip("CelesTrak GP query for the selected real satellite. Default is NOAA 19, NORAD 33591.")]
+    public string tleUrl = "https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=TLE";
+
+    [Tooltip("Use the local StreamingAssets file if the runtime URL cannot be reached.")]
+    public bool fallbackToStreamingAssets = true;
 
     [Tooltip("Optional editor/test override. If assigned, this text is loaded instead of StreamingAssets.")]
     public TextAsset tleTextOverride;
@@ -14,14 +25,23 @@ public class TleLoader : MonoBehaviour
     public bool loadOnAwake = true;
 
     [SerializeField] List<SatelliteTleData> satellites = new List<SatelliteTleData>();
+    [SerializeField] string lastLoadedSource;
 
     public IReadOnlyList<SatelliteTleData> Satellites => satellites;
+    public string LastLoadedSource => lastLoadedSource;
 
     void Awake()
     {
         if (loadOnAwake)
         {
-            LoadConfiguredSource();
+            if (downloadTleAtRuntime && Application.isPlaying)
+            {
+                StartCoroutine(LoadConfiguredSourceAsync());
+            }
+            else
+            {
+                LoadConfiguredSource();
+            }
         }
     }
 
@@ -33,8 +53,52 @@ public class TleLoader : MonoBehaviour
             return;
         }
 
+        if (downloadTleAtRuntime && Application.isPlaying)
+        {
+            Debug.LogWarning("Runtime TLE URL loading is asynchronous. Use LoadConfiguredSourceAsync when downloadTleAtRuntime is enabled.");
+        }
+
         string fullPath = Path.Combine(Application.streamingAssetsPath, streamingAssetsRelativePath);
         LoadFromStreamingAssetsPath(fullPath);
+    }
+
+    public IEnumerator LoadConfiguredSourceAsync(System.Action<bool> onComplete = null)
+    {
+        if (tleTextOverride != null)
+        {
+            LoadFromText(tleTextOverride.text, tleTextOverride.name);
+            onComplete?.Invoke(satellites.Count > 0);
+            yield break;
+        }
+
+        if (downloadTleAtRuntime && !string.IsNullOrWhiteSpace(tleUrl))
+        {
+            using (UnityWebRequest request = UnityWebRequest.Get(tleUrl))
+            {
+                yield return request.SendWebRequest();
+
+                if (request.result == UnityWebRequest.Result.Success && !string.IsNullOrWhiteSpace(request.downloadHandler.text))
+                {
+                    LoadFromText(request.downloadHandler.text, tleUrl);
+                    onComplete?.Invoke(satellites.Count > 0);
+                    yield break;
+                }
+
+                Debug.LogWarning($"TLE download failed from {tleUrl}: {request.error}");
+            }
+        }
+
+        if (fallbackToStreamingAssets)
+        {
+            string fullPath = Path.Combine(Application.streamingAssetsPath, streamingAssetsRelativePath);
+            LoadFromStreamingAssetsPath(fullPath);
+            onComplete?.Invoke(satellites.Count > 0);
+            yield break;
+        }
+
+        satellites.Clear();
+        lastLoadedSource = string.Empty;
+        onComplete?.Invoke(false);
     }
 
     public void LoadFromStreamingAssetsPath(string fullPath)
@@ -43,6 +107,7 @@ public class TleLoader : MonoBehaviour
         {
             Debug.LogWarning($"TLE loader could not find file: {fullPath}");
             satellites.Clear();
+            lastLoadedSource = string.Empty;
             return;
         }
 
@@ -52,6 +117,12 @@ public class TleLoader : MonoBehaviour
     public List<SatelliteTleData> LoadFromText(string tleText, string sourceName = "TLE text")
     {
         satellites = ParseThreeLineTles(tleText, sourceName);
+        for (int i = 0; i < satellites.Count; i++)
+        {
+            satellites[i].dataSource = sourceName;
+        }
+
+        lastLoadedSource = sourceName;
         Debug.Log($"Loaded {satellites.Count} TLE satellite entries from {sourceName}.");
         return satellites;
     }

@@ -107,6 +107,14 @@ public class SatelliteOrbitController : MonoBehaviour
         marker.name = string.IsNullOrWhiteSpace(tle.satelliteName) ? "Satellite" : tle.satelliteName;
         marker.transform.SetParent(satellitesParent != null ? satellitesParent : transform, false);
         marker.transform.localScale = Vector3.one * markerScale;
+
+        SatelliteInfo info = marker.GetComponent<SatelliteInfo>();
+        if (info == null)
+        {
+            info = marker.AddComponent<SatelliteInfo>();
+        }
+
+        info.Initialize(tle);
         return marker;
     }
 
