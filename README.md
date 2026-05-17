@@ -19,10 +19,18 @@ Unity Package Manager dependencies are defined in `Packages/manifest.json`. The 
 - `com.unity.inputsystem` `1.18.0`: desktop camera and keyboard controls.
 - `com.unity.ugui` `2.0.0`: hover TLE information panel.
 - `com.unity.visualscripting` `1.9.9`: present in the project, not central to the satellite simulation.
+- `com.unity.collab-proxy` `2.11.3`: Unity Version Control integration package.
+- `com.unity.timeline` `1.8.10`: installed by the Unity project template, not central to the satellite simulation.
 - `com.unity.modules.physics`: raycast hover detection and marker colliders.
 - `com.unity.modules.vr` and `com.unity.modules.xr`: base Unity XR modules.
 
-SGP4 propagation is supplied by the checked-in SGP.NET DLL:
+NuGetForUnity is checked in under `Assets/NuGet/`, and the NuGet package list is stored in:
+
+```text
+Assets/packages.config
+```
+
+SGP4 propagation is supplied by the checked-in SGP.NET `1.4.0` DLL:
 
 ```text
 Assets/Packages/SGP.NET.1.4.0/lib/netstandard2.0/SGP.NET.dll
@@ -149,6 +157,22 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 6. Hover over the satellite marker with the visible mouse crosshair to view country of origin, operator, mission, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
 
 To show more satellites later, raise or clear `SatelliteManager.maxSatellitesForTesting`. Keep `orbitLinesEnabled` off for a point-mass-only view.
+
+## Optional SGP.NET Smoke Test
+
+The repository includes a small SGP.NET verification component:
+
+```text
+Assets/Scripts/SgpNetSmokeTest.cs
+```
+
+Add this component to an enabled GameObject in a temporary test scene or attach it to an existing test object, then enter Play mode. It constructs a sample satellite from an ISS TLE and logs either:
+
+```text
+SGP.NET smoke test OK.
+```
+
+or an exception if the checked-in SGP.NET assembly cannot be loaded or used. This script is only a dependency smoke test; it is not required for the default NOAA 19 scene.
 
 ## Desktop Controls
 
