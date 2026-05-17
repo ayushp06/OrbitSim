@@ -315,7 +315,7 @@ public class SatelliteManager : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current.pKey.wasPressedThisFrame)
         {
             ToggleSimulationPaused();
         }

@@ -143,13 +143,14 @@ Desktop navigation uses `Assets/Scripts/CameraControls.cs` with Unity's Input Sy
 - Move the mouse to rotate the camera and point the centered crosshair at a satellite marker.
 - Point the crosshair at a satellite marker to hover it and show TLE data.
 - `W`, `A`, `S`, `D`: move camera.
-- `Q`, `E`: move down/up.
-- `Left Shift`: movement boost.
+- `Space`: move up.
+- `Left Shift` or `Right Shift`: move down.
+- `Left Ctrl`: movement boost.
 - `Escape`: toggle cursor lock.
 
 Simulation time controls are handled by `SatelliteManager`:
 
-- `Space`: pause or resume simulation time.
+- `P`: pause or resume simulation time.
 - `=` or numpad `+`: multiply simulation speed by `speedStepMultiplier`.
 - `-` or numpad `-`: divide simulation speed by `speedStepMultiplier`.
 

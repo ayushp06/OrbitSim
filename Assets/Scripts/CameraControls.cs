@@ -6,6 +6,7 @@ public class FlyCameraNewInput : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 10f;
     public float boostMultiplier = 5f;
+    public Key boostKey = Key.LeftCtrl;
 
     [Header("Look")]
     public float lookSensitivity = 0.1f; // tune this
@@ -49,8 +50,7 @@ public class FlyCameraNewInput : MonoBehaviour
 
         if (Keyboard.current == null) return;
 
-        // Movement (WASD + QE)
-        float boost = Keyboard.current.leftShiftKey.isPressed ? boostMultiplier : 1f;
+        float boost = Keyboard.current[boostKey].isPressed ? boostMultiplier : 1f;
         float speed = moveSpeed * boost;
 
         float x = 0f;
@@ -61,8 +61,8 @@ public class FlyCameraNewInput : MonoBehaviour
         if (Keyboard.current.wKey.isPressed) z += 1f;
 
         float y = 0f;
-        if (Keyboard.current.eKey.isPressed) y += 1f;
-        if (Keyboard.current.qKey.isPressed) y -= 1f;
+        if (Keyboard.current.spaceKey.isPressed) y += 1f;
+        if (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed) y -= 1f;
 
         Vector3 move = (transform.right * x) + (transform.forward * z) + (transform.up * y);
         transform.position += move * speed * Time.deltaTime;

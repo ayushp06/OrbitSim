@@ -25,6 +25,7 @@ public class SatelliteHoverController : MonoBehaviour
     [Header("Raycast")]
     public LayerMask satelliteLayerMask = ~0;
     public float maxHoverDistance = 500f;
+    public float hoverSphereCastRadius = 1.5f;
 
     [Header("Desktop Crosshair")]
     public bool showDesktopCrosshair = true;
@@ -120,6 +121,12 @@ public class SatelliteHoverController : MonoBehaviour
 
     SatelliteInfo RaycastSatellite(Ray ray)
     {
+        if (hoverSphereCastRadius > 0f &&
+            Physics.SphereCast(ray, hoverSphereCastRadius, out RaycastHit sphereHit, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide))
+        {
+            return sphereHit.collider.GetComponentInParent<SatelliteInfo>();
+        }
+
         if (!Physics.Raycast(ray, out RaycastHit hit, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide))
         {
             return null;
