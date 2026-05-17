@@ -640,6 +640,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 161001}
+  - component: {fileID: 161002}
+  - component: {fileID: 161003}
   m_Layer: 0
   m_Name: SimulationManager
   m_TagString: Untagged
@@ -662,6 +664,44 @@ Transform:
   m_Children: []
   m_Father: {fileID: 160001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &161002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c2cd1981ba5472eb913dfb9444dd339, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  streamingAssetsRelativePath: TLE/leo-sample.tle
+  tleTextOverride: {fileID: 0}
+  loadOnAwake: 0
+  satellites: []
+--- !u!114 &161003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d3e52773c24747a7e6f52d4724ea25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tleLoader: {fileID: 161002}
+  loadOnStart: 1
+  earthCenter: {fileID: 110001}
+  satellitesParent: {fileID: 120001}
+  satelliteMarkerPrefab: {fileID: 0}
+  simulationTimeKind: 1
+  timeScale: 120
+  earthRadiusWorldUnits: 10
+  markerScale: 0.35
+  preferSgp4Propagation: 1
 --- !u!1 &162000
 GameObject:
   m_ObjectHideFlags: 0
