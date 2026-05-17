@@ -729,12 +729,16 @@ MonoBehaviour:
   simulationPaused: 0
   maxSatellitesForTesting: 0
   orbitLinesEnabled: 1
+  satellitePositionUpdateInterval: 0.05
+  maxSatellitePositionUpdatesPerFrame: 0
   showOnlyLeoSatellites: 1
   maxLeoAltitudeKilometers: 2000
   minLeoMeanMotionRevsPerDay: 11.25
   enableKeyboardTimeControls: 1
   speedStepMultiplier: 2
   markerScale: 0.35
+  satelliteMarkerMaterial: {fileID: 0}
+  shareMarkerMaterial: 1
   orbitLineSegments: 96
   maxOrbitLines: 64
   orbitLineWidth: 0.025

@@ -27,6 +27,11 @@ public class SatelliteManager : MonoBehaviour
     public int maxSatellitesForTesting = 0;
     public bool orbitLinesEnabled = true;
 
+    [Header("Performance")]
+    [Min(0f)]
+    public float satellitePositionUpdateInterval = 0.05f;
+    public int maxSatellitePositionUpdatesPerFrame = 0;
+
     [Header("LEO Filtering")]
     public bool showOnlyLeoSatellites = true;
     public double maxLeoAltitudeKilometers = 2000d;
@@ -38,6 +43,8 @@ public class SatelliteManager : MonoBehaviour
 
     [Header("Marker Rendering")]
     public float markerScale = 0.35f;
+    public Material satelliteMarkerMaterial;
+    public bool shareMarkerMaterial = true;
 
     [Header("Orbit Rendering")]
     public int orbitLineSegments = 96;
@@ -49,6 +56,12 @@ public class SatelliteManager : MonoBehaviour
     readonly List<RuntimeSatellite> satellites = new List<RuntimeSatellite>();
     DateTime simulationTimeUtc;
     Material sharedOrbitLineMaterial;
+    Material sharedSatelliteMarkerMaterial;
+    Transform cachedEarthReference;
+    Transform cachedSatelliteParent;
+    Transform cachedOrbitVisualsParent;
+    float positionUpdateTimer;
+    int nextPositionUpdateIndex;
 
     public DateTime SimulationTimeUtc => simulationTimeUtc;
     public IReadOnlyList<RuntimeSatellite> RuntimeSatellites => satellites;
@@ -57,6 +70,7 @@ public class SatelliteManager : MonoBehaviour
     void Awake()
     {
         simulationTimeUtc = DateTime.UtcNow;
+        CacheSceneReferences();
     }
 
     void Start()
@@ -69,7 +83,7 @@ public class SatelliteManager : MonoBehaviour
     {
         HandleKeyboardTimeControls();
         simulationTimeUtc = simulationTimeUtc.AddSeconds(Time.deltaTime * EffectiveTimeScale);
-        UpdateSatellitePositions();
+        TickSatellitePositionUpdates();
     }
 
     public void PlaySimulation()
@@ -100,6 +114,7 @@ public class SatelliteManager : MonoBehaviour
     public void LoadAndSpawnSatellites()
     {
         ClearRuntimeSatellites();
+        CacheSceneReferences();
 
         if (tleLoader == null)
         {
@@ -113,6 +128,8 @@ public class SatelliteManager : MonoBehaviour
         }
 
         tleLoader.LoadConfiguredSource();
+
+        satellites.Capacity = Mathf.Max(satellites.Capacity, maxSatellitesForTesting > 0 ? maxSatellitesForTesting : tleLoader.Satellites.Count);
 
         int filteredOutCount = 0;
         int spawnedCount = 0;
@@ -143,23 +160,69 @@ public class SatelliteManager : MonoBehaviour
             BuildOrbitLines();
         }
 
-        UpdateSatellitePositions();
+        UpdateAllSatellitePositions();
     }
 
-    void UpdateSatellitePositions()
+    void TickSatellitePositionUpdates()
+    {
+        if (satellites.Count == 0)
+        {
+            return;
+        }
+
+        positionUpdateTimer += Time.deltaTime;
+        if (satellitePositionUpdateInterval > 0f && positionUpdateTimer < satellitePositionUpdateInterval)
+        {
+            return;
+        }
+
+        positionUpdateTimer = 0f;
+
+        if (maxSatellitePositionUpdatesPerFrame > 0 && maxSatellitePositionUpdatesPerFrame < satellites.Count)
+        {
+            // Large catalogs can spread propagation across frames. This trades perfect simultaneity for steadier frame time.
+            UpdateSatellitePositionsBatch(maxSatellitePositionUpdatesPerFrame);
+            return;
+        }
+
+        UpdateAllSatellitePositions();
+    }
+
+    void UpdateAllSatellitePositions()
     {
         Vector3 origin = GetEarthOrigin();
 
         for (int i = 0; i < satellites.Count; i++)
         {
-            RuntimeSatellite satellite = satellites[i];
-            if (satellite.Marker == null)
+            UpdateSatellitePosition(satellites[i], origin);
+        }
+    }
+
+    void UpdateSatellitePositionsBatch(int maxUpdates)
+    {
+        Vector3 origin = GetEarthOrigin();
+        int updates = Mathf.Min(maxUpdates, satellites.Count);
+
+        for (int i = 0; i < updates; i++)
+        {
+            if (nextPositionUpdateIndex >= satellites.Count)
             {
-                continue;
+                nextPositionUpdateIndex = 0;
             }
 
-            satellite.Marker.transform.position = origin + ScalePositionForVisualization(satellite.GetPositionKilometers(simulationTimeUtc));
+            UpdateSatellitePosition(satellites[nextPositionUpdateIndex], origin);
+            nextPositionUpdateIndex++;
         }
+    }
+
+    void UpdateSatellitePosition(RuntimeSatellite satellite, Vector3 origin)
+    {
+        if (satellite.MarkerTransform == null)
+        {
+            return;
+        }
+
+        satellite.MarkerTransform.position = origin + ScalePositionForVisualization(satellite.GetPositionKilometers(simulationTimeUtc));
     }
 
     void BuildOrbitLines()
@@ -210,6 +273,13 @@ public class SatelliteManager : MonoBehaviour
         }
     }
 
+    void CacheSceneReferences()
+    {
+        cachedEarthReference = earthReference != null ? earthReference : transform;
+        cachedSatelliteParent = satellitesParent != null ? satellitesParent : transform;
+        cachedOrbitVisualsParent = orbitVisualsParent != null ? orbitVisualsParent : transform;
+    }
+
     void HandleKeyboardTimeControls()
     {
         if (!enableKeyboardTimeControls || Keyboard.current == null)
@@ -239,7 +309,7 @@ public class SatelliteManager : MonoBehaviour
             ? Instantiate(satelliteMarkerPrefab)
             : GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
-        marker.transform.SetParent(satellitesParent != null ? satellitesParent : transform, false);
+        marker.transform.SetParent(cachedSatelliteParent, false);
         marker.transform.localScale = Vector3.one * markerScale;
 
         SatelliteInfo info = marker.GetComponent<SatelliteInfo>();
@@ -249,13 +319,76 @@ public class SatelliteManager : MonoBehaviour
         }
 
         info.Initialize(tle);
+        ApplySharedMarkerMaterial(marker);
         return marker;
+    }
+
+    void ApplySharedMarkerMaterial(GameObject marker)
+    {
+        if (!shareMarkerMaterial)
+        {
+            return;
+        }
+
+        Renderer markerRenderer = marker.GetComponent<Renderer>();
+        if (markerRenderer == null)
+        {
+            markerRenderer = marker.GetComponentInChildren<Renderer>();
+        }
+
+        if (markerRenderer == null)
+        {
+            return;
+        }
+
+        // Shared instancing-capable materials avoid per-marker material clones from primitive creation and custom prefabs.
+        Material material = GetSatelliteMarkerMaterial();
+        if (material != null)
+        {
+            markerRenderer.sharedMaterial = material;
+        }
+    }
+
+    Material GetSatelliteMarkerMaterial()
+    {
+        Material material = satelliteMarkerMaterial;
+        if (material == null)
+        {
+            if (sharedSatelliteMarkerMaterial == null)
+            {
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                if (shader == null)
+                {
+                    shader = Shader.Find("Standard");
+                }
+
+                if (shader == null)
+                {
+                    shader = Shader.Find("Sprites/Default");
+                }
+
+                if (shader == null)
+                {
+                    Debug.LogWarning("SatelliteManager could not find a marker shader. Existing marker materials will be used.");
+                    return material;
+                }
+
+                sharedSatelliteMarkerMaterial = new Material(shader);
+                sharedSatelliteMarkerMaterial.name = "Shared Satellite Marker Material";
+                sharedSatelliteMarkerMaterial.color = new Color(0.2f, 0.9f, 1f, 1f);
+            }
+
+            material = sharedSatelliteMarkerMaterial;
+        }
+
+        material.enableInstancing = true;
+        return material;
     }
 
     LineRenderer CreateOrbitLine(SatelliteTleData tle)
     {
         var orbitObject = new GameObject($"{tle.satelliteName} Orbit");
-        orbitObject.transform.SetParent(orbitVisualsParent != null ? orbitVisualsParent : transform, false);
+        orbitObject.transform.SetParent(cachedOrbitVisualsParent, false);
 
         LineRenderer line = orbitObject.AddComponent<LineRenderer>();
         line.useWorldSpace = true;
@@ -318,7 +451,7 @@ public class SatelliteManager : MonoBehaviour
 
     Vector3 GetEarthOrigin()
     {
-        return earthReference != null ? earthReference.position : transform.position;
+        return cachedEarthReference != null ? cachedEarthReference.position : transform.position;
     }
 
     Vector3 ScalePositionForVisualization(Vector3 positionKilometers)
@@ -346,12 +479,14 @@ public class SatelliteManager : MonoBehaviour
 
         public SatelliteTleData TleData => tleData;
         public GameObject Marker { get; }
+        public Transform MarkerTransform { get; }
         public LineRenderer OrbitLine { get; set; }
 
         public RuntimeSatellite(SatelliteTleData tleData, GameObject marker)
         {
             this.tleData = tleData;
             Marker = marker;
+            MarkerTransform = marker != null ? marker.transform : null;
         }
 
         public void TryCreateSgp4Satellite()

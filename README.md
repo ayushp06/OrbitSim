@@ -134,10 +134,25 @@ Important `SatelliteManager` fields:
 - `timeScale`: base simulation seconds per real second.
 - `simulationSpeedMultiplier`: runtime speed multiplier.
 - `simulationPaused`: pauses simulation time when enabled.
+- `satellitePositionUpdateInterval`: seconds between satellite position updates. Raising this lowers CPU cost for large catalogs at the cost of less frequent motion updates.
+- `maxSatellitePositionUpdatesPerFrame`: optional cap for spreading propagation work across frames. Set to `0` to update all satellites together.
 - `showOnlyLeoSatellites`: toggles LEO filtering.
 - `maxSatellitesForTesting`: limits spawned satellites for testing when greater than zero.
 - `orbitLinesEnabled`: enables/disables orbit line creation.
 - `maxOrbitLines`: caps orbit line count for performance.
+- `shareMarkerMaterial`: assigns a shared instancing-enabled material to markers to avoid per-marker material instances.
+
+## Performance Notes
+
+Satellite markers are spawned once and updated through `SatelliteManager` instead of through one update loop per marker. Runtime marker transforms are cached when markers are created, so the position hot path does not call `GetComponent`.
+
+For large catalogs:
+
+- Use `maxSatellitesForTesting` while tuning.
+- Keep `orbitLinesEnabled` off or reduce `maxOrbitLines`.
+- Increase `satellitePositionUpdateInterval` to reduce propagation frequency.
+- Set `maxSatellitePositionUpdatesPerFrame` to spread satellite updates across multiple frames.
+- Keep `shareMarkerMaterial` enabled so primitive markers can use a shared instancing-capable material.
 
 ## Running The Project
 
