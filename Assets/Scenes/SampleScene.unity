@@ -642,6 +642,7 @@ GameObject:
   - component: {fileID: 161001}
   - component: {fileID: 161002}
   - component: {fileID: 161003}
+  - component: {fileID: 161004}
   m_Layer: 0
   m_Name: SimulationManager
   m_TagString: Untagged
@@ -708,6 +709,31 @@ MonoBehaviour:
   orbitLineWidth: 0.025
   orbitLineColor: {r: 0.25, g: 0.8, b: 1, a: 0.45}
   orbitLineMaterial: {fileID: 0}
+--- !u!114 &161004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d7151481c844e63869db48f9f09bfd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableDesktopMouseHover: 1
+  mouseHoverCamera: {fileID: 142002}
+  enableVrRayHover: 1
+  vrRayOrigins: []
+  satelliteLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  maxHoverDistance: 500
+  highlightColor: {r: 0.2, g: 1, b: 1, a: 1}
+  highlightedScaleMultiplier: 1.6
+  onHoveredSatelliteChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &162000
 GameObject:
   m_ObjectHideFlags: 0
