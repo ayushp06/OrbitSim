@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SGPdotNET.Observation;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SatelliteManager : MonoBehaviour
 {
@@ -13,15 +14,27 @@ public class SatelliteManager : MonoBehaviour
     [Header("Scene References")]
     public GameObject satelliteMarkerPrefab;
     public Transform earthReference;
+    public Transform earthVisual;
     public Transform satellitesParent;
     public Transform orbitVisualsParent;
 
     [Header("Simulation")]
-    public float orbitScale = 1f;
     public float earthRadiusWorldUnits = 10f;
+    public float orbitAltitudeExaggeration = 8f;
     public float timeScale = 120f;
+    public float simulationSpeedMultiplier = 1f;
+    public bool simulationPaused;
     public int maxSatellitesForTesting = 0;
     public bool orbitLinesEnabled = true;
+
+    [Header("LEO Filtering")]
+    public bool showOnlyLeoSatellites = true;
+    public double maxLeoAltitudeKilometers = 2000d;
+    public double minLeoMeanMotionRevsPerDay = 11.25d;
+
+    [Header("Desktop Time Controls")]
+    public bool enableKeyboardTimeControls = true;
+    public float speedStepMultiplier = 2f;
 
     [Header("Marker Rendering")]
     public float markerScale = 0.35f;
@@ -39,6 +52,7 @@ public class SatelliteManager : MonoBehaviour
 
     public DateTime SimulationTimeUtc => simulationTimeUtc;
     public IReadOnlyList<RuntimeSatellite> RuntimeSatellites => satellites;
+    public float EffectiveTimeScale => simulationPaused ? 0f : timeScale * Mathf.Max(0f, simulationSpeedMultiplier);
 
     void Awake()
     {
@@ -47,13 +61,40 @@ public class SatelliteManager : MonoBehaviour
 
     void Start()
     {
+        ApplyEarthVisualScale();
         LoadAndSpawnSatellites();
     }
 
     void Update()
     {
-        simulationTimeUtc = simulationTimeUtc.AddSeconds(Time.deltaTime * timeScale);
+        HandleKeyboardTimeControls();
+        simulationTimeUtc = simulationTimeUtc.AddSeconds(Time.deltaTime * EffectiveTimeScale);
         UpdateSatellitePositions();
+    }
+
+    public void PlaySimulation()
+    {
+        simulationPaused = false;
+    }
+
+    public void PauseSimulation()
+    {
+        simulationPaused = true;
+    }
+
+    public void ToggleSimulationPaused()
+    {
+        simulationPaused = !simulationPaused;
+    }
+
+    public void SetSimulationSpeedMultiplier(float multiplier)
+    {
+        simulationSpeedMultiplier = Mathf.Max(0f, multiplier);
+    }
+
+    public void MultiplySimulationSpeed(float multiplier)
+    {
+        SetSimulationSpeedMultiplier(simulationSpeedMultiplier * Mathf.Max(0.0001f, multiplier));
     }
 
     public void LoadAndSpawnSatellites()
@@ -73,18 +114,28 @@ public class SatelliteManager : MonoBehaviour
 
         tleLoader.LoadConfiguredSource();
 
-        int spawnCount = tleLoader.Satellites.Count;
-        if (maxSatellitesForTesting > 0)
-        {
-            spawnCount = Mathf.Min(spawnCount, maxSatellitesForTesting);
-        }
+        int filteredOutCount = 0;
+        int spawnedCount = 0;
+        int maxCount = maxSatellitesForTesting > 0 ? maxSatellitesForTesting : int.MaxValue;
 
-        for (int i = 0; i < spawnCount; i++)
+        for (int i = 0; i < tleLoader.Satellites.Count && spawnedCount < maxCount; i++)
         {
             SatelliteTleData tle = tleLoader.Satellites[i];
+            if (showOnlyLeoSatellites && !RuntimeSatellite.IsLikelyLeo(tle, maxLeoAltitudeKilometers, minLeoMeanMotionRevsPerDay))
+            {
+                filteredOutCount++;
+                continue;
+            }
+
             var runtimeSatellite = new RuntimeSatellite(tle, CreateMarker(tle));
             runtimeSatellite.TryCreateSgp4Satellite();
             satellites.Add(runtimeSatellite);
+            spawnedCount++;
+        }
+
+        if (showOnlyLeoSatellites)
+        {
+            Debug.Log($"SatelliteManager spawned {spawnedCount} likely LEO satellites and filtered out {filteredOutCount} non-LEO or unclassifiable entries.");
         }
 
         if (orbitLinesEnabled)
@@ -98,7 +149,6 @@ public class SatelliteManager : MonoBehaviour
     void UpdateSatellitePositions()
     {
         Vector3 origin = GetEarthOrigin();
-        float kilometersToWorldUnits = GetKilometersToWorldUnits();
 
         for (int i = 0; i < satellites.Count; i++)
         {
@@ -108,7 +158,7 @@ public class SatelliteManager : MonoBehaviour
                 continue;
             }
 
-            satellite.Marker.transform.position = origin + satellite.GetWorldOffset(simulationTimeUtc, kilometersToWorldUnits);
+            satellite.Marker.transform.position = origin + ScalePositionForVisualization(satellite.GetPositionKilometers(simulationTimeUtc));
         }
     }
 
@@ -135,7 +185,6 @@ public class SatelliteManager : MonoBehaviour
         line.positionCount = segments + 1;
 
         Vector3 origin = GetEarthOrigin();
-        float kilometersToWorldUnits = GetKilometersToWorldUnits();
         DateTime epoch = satellite.GetEpochOrDefault(simulationTimeUtc);
         double periodMinutes = satellite.GetOrbitalPeriodMinutes();
 
@@ -143,7 +192,44 @@ public class SatelliteManager : MonoBehaviour
         {
             double t = (double)i / segments;
             DateTime sampleTime = epoch.AddMinutes(periodMinutes * t);
-            line.SetPosition(i, origin + satellite.GetApproximateWorldOffset(sampleTime, kilometersToWorldUnits));
+            line.SetPosition(i, origin + ScalePositionForVisualization(satellite.GetApproximatePositionKilometers(sampleTime)));
+        }
+    }
+
+    void ApplyEarthVisualScale()
+    {
+        Transform visual = earthVisual;
+        if (visual == null && earthReference != null && earthReference.childCount > 0)
+        {
+            visual = earthReference.GetChild(0);
+        }
+
+        if (visual != null)
+        {
+            visual.localScale = Vector3.one * earthRadiusWorldUnits * 2f;
+        }
+    }
+
+    void HandleKeyboardTimeControls()
+    {
+        if (!enableKeyboardTimeControls || Keyboard.current == null)
+        {
+            return;
+        }
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            ToggleSimulationPaused();
+        }
+
+        if (Keyboard.current.equalsKey.wasPressedThisFrame || Keyboard.current.numpadPlusKey.wasPressedThisFrame)
+        {
+            MultiplySimulationSpeed(speedStepMultiplier);
+        }
+
+        if (Keyboard.current.minusKey.wasPressedThisFrame || Keyboard.current.numpadMinusKey.wasPressedThisFrame)
+        {
+            MultiplySimulationSpeed(1f / Mathf.Max(0.0001f, speedStepMultiplier));
         }
     }
 
@@ -235,9 +321,21 @@ public class SatelliteManager : MonoBehaviour
         return earthReference != null ? earthReference.position : transform.position;
     }
 
-    float GetKilometersToWorldUnits()
+    Vector3 ScalePositionForVisualization(Vector3 positionKilometers)
     {
-        return (earthRadiusWorldUnits / (float)EarthRadiusKilometers) * Mathf.Max(0.0001f, orbitScale);
+        if (positionKilometers.sqrMagnitude <= 0.0001f)
+        {
+            return Vector3.up * earthRadiusWorldUnits;
+        }
+
+        // Scale model:
+        // - Earth radius is mapped to earthRadiusWorldUnits.
+        // - Satellite direction comes from SGP4 or the Keplerian fallback, preserving global distribution.
+        // - Altitude above Earth is exaggerated independently so LEO remains visible in VR/desktop views.
+        float physicalRadiusKilometers = positionKilometers.magnitude;
+        float altitudeKilometers = Mathf.Max(0f, physicalRadiusKilometers - (float)EarthRadiusKilometers);
+        float altitudeWorldUnits = altitudeKilometers * (earthRadiusWorldUnits / (float)EarthRadiusKilometers) * Mathf.Max(0f, orbitAltitudeExaggeration);
+        return positionKilometers.normalized * (earthRadiusWorldUnits + altitudeWorldUnits);
     }
 
     public class RuntimeSatellite
@@ -270,14 +368,14 @@ public class SatelliteManager : MonoBehaviour
             }
         }
 
-        public Vector3 GetWorldOffset(DateTime timeUtc, float kilometersToWorldUnits)
+        public Vector3 GetPositionKilometers(DateTime timeUtc)
         {
             if (sgp4Available)
             {
                 try
                 {
                     SGPdotNET.Util.Vector3 eciKilometers = sgp4Satellite.Predict(timeUtc).Position;
-                    return ToUnityVector(eciKilometers.X, eciKilometers.Y, eciKilometers.Z) * kilometersToWorldUnits;
+                    return ToUnityVector(eciKilometers.X, eciKilometers.Y, eciKilometers.Z);
                 }
                 catch (Exception ex)
                 {
@@ -286,12 +384,12 @@ public class SatelliteManager : MonoBehaviour
                 }
             }
 
-            return GetApproximateWorldOffset(timeUtc, kilometersToWorldUnits);
+            return GetApproximatePositionKilometers(timeUtc);
         }
 
-        public Vector3 GetApproximateWorldOffset(DateTime timeUtc, float kilometersToWorldUnits)
+        public Vector3 GetApproximatePositionKilometers(DateTime timeUtc)
         {
-            return ApproximateKeplerPositionKilometers(timeUtc) * kilometersToWorldUnits;
+            return ApproximateKeplerPositionKilometers(timeUtc);
         }
 
         public DateTime GetEpochOrDefault(DateTime fallback)
@@ -305,6 +403,23 @@ public class SatelliteManager : MonoBehaviour
         {
             double meanMotion = tleData.hasMeanMotion ? Math.Max(tleData.meanMotion, 0.01d) : 15d;
             return 1440d / meanMotion;
+        }
+
+        public static bool IsLikelyLeo(SatelliteTleData tleData, double maxLeoAltitudeKilometers, double minLeoMeanMotionRevsPerDay)
+        {
+            if (tleData == null || !tleData.hasMeanMotion)
+            {
+                return false;
+            }
+
+            double meanMotion = Math.Max(tleData.meanMotion, 0.01d);
+            double periodMinutes = 1440d / meanMotion;
+            double semiMajorAxisKilometers = SemiMajorAxisFromMeanMotion(meanMotion);
+            double averageAltitudeKilometers = semiMajorAxisKilometers - EarthRadiusKilometers;
+
+            return meanMotion >= minLeoMeanMotionRevsPerDay ||
+                   periodMinutes <= 128d ||
+                   averageAltitudeKilometers <= maxLeoAltitudeKilometers;
         }
 
         // Orbit lines use this approximate two-body path even when marker positions use SGP4.

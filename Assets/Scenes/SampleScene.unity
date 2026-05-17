@@ -719,13 +719,21 @@ MonoBehaviour:
   tleLoader: {fileID: 161002}
   satelliteMarkerPrefab: {fileID: 0}
   earthReference: {fileID: 110001}
+  earthVisual: {fileID: 111001}
   satellitesParent: {fileID: 120001}
   orbitVisualsParent: {fileID: 130001}
-  orbitScale: 1
   earthRadiusWorldUnits: 10
+  orbitAltitudeExaggeration: 8
   timeScale: 120
+  simulationSpeedMultiplier: 1
+  simulationPaused: 0
   maxSatellitesForTesting: 0
   orbitLinesEnabled: 1
+  showOnlyLeoSatellites: 1
+  maxLeoAltitudeKilometers: 2000
+  minLeoMeanMotionRevsPerDay: 11.25
+  enableKeyboardTimeControls: 1
+  speedStepMultiplier: 2
   markerScale: 0.35
   orbitLineSegments: 96
   maxOrbitLines: 64
