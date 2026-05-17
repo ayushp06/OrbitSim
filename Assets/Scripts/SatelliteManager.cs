@@ -24,8 +24,8 @@ public class SatelliteManager : MonoBehaviour
     public float timeScale = 120f;
     public float simulationSpeedMultiplier = 1f;
     public bool simulationPaused;
-    public int maxSatellitesForTesting = 0;
-    public bool orbitLinesEnabled = true;
+    public int maxSatellitesForTesting = 1;
+    public bool orbitLinesEnabled = false;
 
     [Header("Performance")]
     [Min(0f)]
@@ -115,6 +115,7 @@ public class SatelliteManager : MonoBehaviour
     {
         ClearRuntimeSatellites();
         CacheSceneReferences();
+        ClearOrbitVisuals();
 
         if (tleLoader == null)
         {
@@ -157,7 +158,12 @@ public class SatelliteManager : MonoBehaviour
 
         if (orbitLinesEnabled)
         {
+            SetOrbitVisualsActive(true);
             BuildOrbitLines();
+        }
+        else
+        {
+            SetOrbitVisualsActive(false);
         }
 
         UpdateAllSatellitePositions();
@@ -239,6 +245,28 @@ public class SatelliteManager : MonoBehaviour
         if (satellites.Count > lineCount)
         {
             Debug.Log($"Orbit lines limited to {lineCount} of {satellites.Count} satellites for performance.");
+        }
+    }
+
+    void ClearOrbitVisuals()
+    {
+        if (cachedOrbitVisualsParent == null)
+        {
+            return;
+        }
+
+        // The point-mass demo should not show paths. Clear any saved/generated orbit children before spawning.
+        for (int i = cachedOrbitVisualsParent.childCount - 1; i >= 0; i--)
+        {
+            DestroyRuntimeObject(cachedOrbitVisualsParent.GetChild(i).gameObject);
+        }
+    }
+
+    void SetOrbitVisualsActive(bool active)
+    {
+        if (cachedOrbitVisualsParent != null)
+        {
+            cachedOrbitVisualsParent.gameObject.SetActive(active);
         }
     }
 

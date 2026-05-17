@@ -346,7 +346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &130001
 Transform:
   m_ObjectHideFlags: 0
@@ -534,7 +534,7 @@ MonoBehaviour:
   moveSpeed: 18
   boostMultiplier: 4
   lookSensitivity: 0.12
-  lockCursor: 0
+  lockCursor: 1
 --- !u!1 &150000
 GameObject:
   m_ObjectHideFlags: 0
@@ -757,6 +757,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableDesktopMouseHover: 1
+  useScreenCenterForDesktopHover: 1
   mouseHoverCamera: {fileID: 142002}
   enableVrRayHover: 1
   vrRayOrigins: []
@@ -766,8 +767,8 @@ MonoBehaviour:
   maxHoverDistance: 500
   showDesktopCrosshair: 1
   crosshairColor: {r: 0.95, g: 1, b: 1, a: 0.9}
-  crosshairSize: 20
-  crosshairThickness: 2
+  crosshairSize: 8
+  crosshairThickness: 1
   highlightColor: {r: 0.2, g: 1, b: 1, a: 1}
   highlightedScaleMultiplier: 1.6
   onHoveredSatelliteChanged:

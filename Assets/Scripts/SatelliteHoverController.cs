@@ -15,6 +15,7 @@ public class SatelliteHoverController : MonoBehaviour
 {
     [Header("Input")]
     public bool enableDesktopMouseHover = true;
+    public bool useScreenCenterForDesktopHover = true;
     public Camera mouseHoverCamera;
 
     [Tooltip("Assign VR controller ray origins here. If XR Interaction Toolkit is added later, use the controller ray/interactor attach transforms.")]
@@ -28,8 +29,8 @@ public class SatelliteHoverController : MonoBehaviour
     [Header("Desktop Crosshair")]
     public bool showDesktopCrosshair = true;
     public Color crosshairColor = new Color(0.95f, 1f, 1f, 0.9f);
-    public float crosshairSize = 20f;
-    public float crosshairThickness = 2f;
+    public float crosshairSize = 8f;
+    public float crosshairThickness = 1f;
 
     [Header("Highlight")]
     public Color highlightColor = new Color(0.2f, 1f, 1f, 1f);
@@ -79,12 +80,16 @@ public class SatelliteHoverController : MonoBehaviour
 
     SatelliteInfo RaycastDesktopMouse()
     {
-        if (mouseHoverCamera == null || !TryGetMousePosition(out Vector2 mousePosition))
+        if (mouseHoverCamera == null)
         {
             return null;
         }
 
-        Ray ray = mouseHoverCamera.ScreenPointToRay(mousePosition);
+        Vector2 rayPosition = useScreenCenterForDesktopHover
+            ? new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
+            : GetMousePositionOrCenter();
+
+        Ray ray = mouseHoverCamera.ScreenPointToRay(rayPosition);
         return RaycastSatellite(ray);
     }
 
@@ -145,8 +150,8 @@ public class SatelliteHoverController : MonoBehaviour
         GameObject crosshairObject = new GameObject("Mouse Crosshair");
         crosshairObject.transform.SetParent(canvasObject.transform, false);
         crosshairRect = crosshairObject.AddComponent<RectTransform>();
-        crosshairRect.anchorMin = Vector2.zero;
-        crosshairRect.anchorMax = Vector2.zero;
+        crosshairRect.anchorMin = useScreenCenterForDesktopHover ? new Vector2(0.5f, 0.5f) : Vector2.zero;
+        crosshairRect.anchorMax = useScreenCenterForDesktopHover ? new Vector2(0.5f, 0.5f) : Vector2.zero;
         crosshairRect.pivot = new Vector2(0.5f, 0.5f);
         crosshairRect.sizeDelta = new Vector2(crosshairSize, crosshairSize);
 
@@ -178,12 +183,20 @@ public class SatelliteHoverController : MonoBehaviour
             return;
         }
 
-        Vector2 mousePosition = Vector2.zero;
-        bool visible = enableDesktopMouseHover && TryGetMousePosition(out mousePosition);
+        bool visible = enableDesktopMouseHover;
         crosshairRect.gameObject.SetActive(visible);
-        if (visible)
+        if (!visible)
         {
-            crosshairRect.anchoredPosition = mousePosition;
+            return;
+        }
+
+        if (useScreenCenterForDesktopHover)
+        {
+            crosshairRect.anchoredPosition = Vector2.zero;
+        }
+        else
+        {
+            crosshairRect.anchoredPosition = GetMousePositionOrCenter();
         }
     }
 
@@ -239,6 +252,13 @@ public class SatelliteHoverController : MonoBehaviour
         }
 
         highlightedTransform = null;
+    }
+
+    static Vector2 GetMousePositionOrCenter()
+    {
+        return TryGetMousePosition(out Vector2 mousePosition)
+            ? mousePosition
+            : new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
     }
 
     static bool TryGetMousePosition(out Vector2 mousePosition)

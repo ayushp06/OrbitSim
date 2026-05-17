@@ -139,9 +139,9 @@ To show more satellites later, raise or clear `SatelliteManager.maxSatellitesFor
 
 Desktop navigation uses `Assets/Scripts/CameraControls.cs` with Unity's Input System:
 
-- Move the mouse to move the visible crosshair around the screen.
+- The crosshair stays fixed at the center of the screen.
+- Move the mouse to rotate the camera and point the centered crosshair at a satellite marker.
 - Point the crosshair at a satellite marker to hover it and show TLE data.
-- Mouse: look around while cursor is locked.
 - `W`, `A`, `S`, `D`: move camera.
 - `Q`, `E`: move down/up.
 - `Left Shift`: movement boost.
