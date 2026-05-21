@@ -23,11 +23,13 @@ public class SatelliteTleInfoPanel : MonoBehaviour
     public bool showPanelWhenNotHovering = false;
 
     [Header("Desktop Layout")]
+    [Tooltip("Maximum panel size. The panel shrinks to fit the active satellite data.")]
     public Vector2 panelSize = new Vector2(520f, 500f);
     public Vector2 screenMargin = new Vector2(24f, 24f);
 
     [Header("VR Layout")]
     public Vector3 worldSpaceLocalPosition = new Vector3(0.55f, 0.05f, 2.2f);
+    [Tooltip("Maximum world-space panel size. The panel shrinks to fit the active satellite data.")]
     public Vector2 worldSpacePanelSize = new Vector2(560f, 520f);
     public float worldSpaceScale = 0.0022f;
 
@@ -35,10 +37,20 @@ public class SatelliteTleInfoPanel : MonoBehaviour
     public Color panelColor = new Color(0.02f, 0.03f, 0.05f, 0.82f);
     public Color textColor = new Color(0.92f, 0.96f, 1f, 1f);
     public int fontSize = 15;
+    public Vector2 contentPadding = new Vector2(16f, 14f);
+    public Vector2 minimumPanelSize = new Vector2(280f, 160f);
+    public Vector2 flagMarkerSize = new Vector2(26f, 16f);
+    public float flagMarkerSpacing = 5f;
+    public float headerBodySpacing = 8f;
 
     Canvas canvas;
     RectTransform panelRect;
+    RectTransform titleRect;
+    RectTransform flagContainerRect;
+    RectTransform detailsRect;
+    Text titleText;
     Text contentText;
+    bool currentUseWorldSpace;
 
     void Awake()
     {
@@ -77,13 +89,19 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             return;
         }
 
-        SetPanelVisible(true);
+        titleText.text = satelliteInfo.TleData.satelliteName;
         contentText.text = BuildSatelliteText(satelliteInfo.TleData);
+        RebuildFlagMarkers(satelliteInfo.TleData);
+        ResizePanelToContent();
+        SetPanelVisible(true);
     }
 
     void ShowDefaultMessage()
     {
+        titleText.text = string.Empty;
         contentText.text = DefaultMessage;
+        ClearFlagMarkers();
+        ResizePanelToContent();
         SetPanelVisible(showPanelWhenNotHovering);
     }
 
@@ -114,8 +132,8 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             gameObject.AddComponent<GraphicRaycaster>();
         }
 
-        bool useWorldSpace = ShouldUseWorldSpaceHud();
-        ConfigureCanvas(useWorldSpace, scaler);
+        currentUseWorldSpace = ShouldUseWorldSpaceHud();
+        ConfigureCanvas(currentUseWorldSpace, scaler);
 
         GameObject panelObject = new GameObject("TLE Info Panel");
         panelObject.transform.SetParent(transform, false);
@@ -123,9 +141,26 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         Image panelImage = panelObject.AddComponent<Image>();
         panelImage.color = panelColor;
 
+        GameObject titleObject = new GameObject("Satellite Title");
+        titleObject.transform.SetParent(panelObject.transform, false);
+        titleRect = titleObject.AddComponent<RectTransform>();
+        titleText = titleObject.AddComponent<Text>();
+        titleText.font = GetBuiltInFont();
+        titleText.fontSize = fontSize + 2;
+        titleText.fontStyle = FontStyle.Bold;
+        titleText.color = textColor;
+        titleText.alignment = TextAnchor.UpperLeft;
+        titleText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        titleText.verticalOverflow = VerticalWrapMode.Truncate;
+        titleText.supportRichText = false;
+
+        GameObject flagContainerObject = new GameObject("Country Flag Markers");
+        flagContainerObject.transform.SetParent(panelObject.transform, false);
+        flagContainerRect = flagContainerObject.AddComponent<RectTransform>();
+
         GameObject textObject = new GameObject("TLE Text");
         textObject.transform.SetParent(panelObject.transform, false);
-        RectTransform textRect = textObject.AddComponent<RectTransform>();
+        detailsRect = textObject.AddComponent<RectTransform>();
         contentText = textObject.AddComponent<Text>();
         contentText.font = GetBuiltInFont();
         contentText.fontSize = fontSize;
@@ -135,7 +170,7 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         contentText.verticalOverflow = VerticalWrapMode.Truncate;
         contentText.supportRichText = false;
 
-        ConfigurePanelLayout(useWorldSpace, textRect);
+        ConfigurePanelLayout(currentUseWorldSpace);
     }
 
     void ConfigureCanvas(bool useWorldSpace, CanvasScaler scaler)
@@ -161,10 +196,9 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
     }
 
-    void ConfigurePanelLayout(bool useWorldSpace, RectTransform textRect)
+    void ConfigurePanelLayout(bool useWorldSpace)
     {
-        Vector2 size = useWorldSpace ? worldSpacePanelSize : panelSize;
-        panelRect.sizeDelta = size;
+        panelRect.sizeDelta = useWorldSpace ? worldSpacePanelSize : panelSize;
 
         if (useWorldSpace)
         {
@@ -181,10 +215,17 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             panelRect.anchoredPosition = new Vector2(-screenMargin.x, -screenMargin.y);
         }
 
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(16f, 14f);
-        textRect.offsetMax = new Vector2(-16f, -14f);
+        titleRect.anchorMin = new Vector2(0f, 1f);
+        titleRect.anchorMax = new Vector2(0f, 1f);
+        titleRect.pivot = new Vector2(0f, 1f);
+
+        flagContainerRect.anchorMin = new Vector2(0f, 1f);
+        flagContainerRect.anchorMax = new Vector2(0f, 1f);
+        flagContainerRect.pivot = new Vector2(0f, 1f);
+
+        detailsRect.anchorMin = new Vector2(0f, 1f);
+        detailsRect.anchorMax = new Vector2(0f, 1f);
+        detailsRect.pivot = new Vector2(0f, 1f);
     }
 
     bool ShouldUseWorldSpaceHud()
@@ -209,16 +250,6 @@ public class SatelliteTleInfoPanel : MonoBehaviour
     string BuildSatelliteText(SatelliteTleData data)
     {
         var builder = new StringBuilder(512);
-        builder.Append(data.satelliteName);
-        string flag = GetCountryFlag(data);
-        if (!string.IsNullOrEmpty(flag))
-        {
-            builder.Append(' ');
-            builder.Append(flag);
-        }
-
-        builder.AppendLine();
-        builder.AppendLine();
         AppendValue(builder, "Country of Origin", data.hasCountryOfOrigin, data.countryOfOrigin);
         AppendValue(builder, "Owner / Operator", data.hasOwnerOperator, data.ownerOperator);
         AppendValue(builder, "Mission", data.hasMission, data.mission);
@@ -247,25 +278,247 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         return degrees.ToString("0.0000", CultureInfo.InvariantCulture) + " deg";
     }
 
-    static string GetCountryFlag(SatelliteTleData data)
+    void ResizePanelToContent()
+    {
+        if (panelRect == null || titleText == null || contentText == null)
+        {
+            return;
+        }
+
+        Vector2 maxSize = currentUseWorldSpace ? worldSpacePanelSize : panelSize;
+        float maxContentWidth = Mathf.Max(120f, maxSize.x - contentPadding.x * 2f);
+        float headerHeight = Mathf.Max(fontSize + 6f, flagMarkerSize.y);
+        float titleWidth = string.IsNullOrWhiteSpace(titleText.text)
+            ? 0f
+            : GetPreferredSize(titleText, titleText.text, maxContentWidth, headerHeight).x;
+        float flagWidth = GetFlagMarkersWidth();
+        float detailsPreferredWidth = GetPreferredSize(contentText, contentText.text, maxContentWidth, 0f).x;
+        float desiredContentWidth = Mathf.Max(titleWidth + flagWidth, detailsPreferredWidth);
+        float contentWidth = Mathf.Clamp(desiredContentWidth, minimumPanelSize.x - contentPadding.x * 2f, maxContentWidth);
+        float detailsHeight = GetPreferredSize(contentText, contentText.text, contentWidth, 0f).y;
+        float titleAreaWidth = Mathf.Max(0f, contentWidth - flagWidth);
+
+        bool hasHeader = !string.IsNullOrWhiteSpace(titleText.text);
+        float desiredHeight = contentPadding.y * 2f + detailsHeight;
+        if (hasHeader)
+        {
+            desiredHeight += headerHeight + headerBodySpacing;
+        }
+
+        Vector2 size = new Vector2(
+            Mathf.Clamp(contentWidth + contentPadding.x * 2f, minimumPanelSize.x, maxSize.x),
+            Mathf.Clamp(desiredHeight, minimumPanelSize.y, maxSize.y));
+
+        panelRect.sizeDelta = size;
+
+        float y = -contentPadding.y;
+        titleRect.gameObject.SetActive(hasHeader);
+        flagContainerRect.gameObject.SetActive(hasHeader && flagContainerRect.childCount > 0);
+        if (hasHeader)
+        {
+            titleRect.anchoredPosition = new Vector2(contentPadding.x, y);
+            titleRect.sizeDelta = new Vector2(titleAreaWidth, headerHeight);
+
+            flagContainerRect.anchoredPosition = new Vector2(contentPadding.x + titleAreaWidth + flagMarkerSpacing, y - 1f);
+            flagContainerRect.sizeDelta = new Vector2(flagWidth, headerHeight);
+            y -= headerHeight + headerBodySpacing;
+        }
+
+        detailsRect.anchoredPosition = new Vector2(contentPadding.x, y);
+        detailsRect.sizeDelta = new Vector2(contentWidth, Mathf.Max(0f, size.y + y - contentPadding.y));
+    }
+
+    static Vector2 GetPreferredSize(Text text, string value, float width, float height)
+    {
+        if (text == null)
+        {
+            return Vector2.zero;
+        }
+
+        TextGenerationSettings settings = text.GetGenerationSettings(new Vector2(width, height));
+        float pixelsPerUnit = text.pixelsPerUnit;
+        float preferredWidth = text.cachedTextGeneratorForLayout.GetPreferredWidth(value, settings) / pixelsPerUnit;
+        float preferredHeight = text.cachedTextGeneratorForLayout.GetPreferredHeight(value, settings) / pixelsPerUnit;
+        return new Vector2(preferredWidth, preferredHeight);
+    }
+
+    void RebuildFlagMarkers(SatelliteTleData data)
+    {
+        ClearFlagMarkers();
+
+        string[] countryCodes = GetCountryCodes(data);
+        for (int i = 0; i < countryCodes.Length; i++)
+        {
+            GameObject flagObject = new GameObject(countryCodes[i] + " Flag");
+            flagObject.transform.SetParent(flagContainerRect, false);
+
+            RectTransform flagRect = flagObject.AddComponent<RectTransform>();
+            flagRect.anchorMin = new Vector2(0f, 1f);
+            flagRect.anchorMax = new Vector2(0f, 1f);
+            flagRect.pivot = new Vector2(0f, 1f);
+            flagRect.sizeDelta = flagMarkerSize;
+            flagRect.anchoredPosition = new Vector2(i * (flagMarkerSize.x + flagMarkerSpacing), 0f);
+
+            RawImage flagImage = flagObject.AddComponent<RawImage>();
+            flagImage.texture = CreateFlagTexture(countryCodes[i]);
+            flagImage.raycastTarget = false;
+        }
+    }
+
+    void ClearFlagMarkers()
+    {
+        if (flagContainerRect == null)
+        {
+            return;
+        }
+
+        for (int i = flagContainerRect.childCount - 1; i >= 0; i--)
+        {
+            Destroy(flagContainerRect.GetChild(i).gameObject);
+        }
+    }
+
+    float GetFlagMarkersWidth()
+    {
+        int flagCount = flagContainerRect != null ? flagContainerRect.childCount : 0;
+        if (flagCount == 0)
+        {
+            return 0f;
+        }
+
+        return flagCount * flagMarkerSize.x + (flagCount - 1) * flagMarkerSpacing + flagMarkerSpacing;
+    }
+
+    static string[] GetCountryCodes(SatelliteTleData data)
     {
         if (data == null || !data.hasCountryOfOrigin || string.IsNullOrWhiteSpace(data.countryOfOrigin))
         {
-            return string.Empty;
+            return System.Array.Empty<string>();
         }
 
         switch (data.countryOfOrigin)
         {
             case "European Union":
-                return "🇪🇺";
+                return new[] { "EU" };
             case "International":
-                return "🌐";
+                return new[] { "INTL" };
             case "United States":
-                return "🇺🇸";
+                return new[] { "US" };
             case "United States / France":
-                return "🇺🇸 🇫🇷";
+                return new[] { "US", "FR" };
             default:
-                return string.Empty;
+                return System.Array.Empty<string>();
+        }
+    }
+
+    static Texture2D CreateFlagTexture(string countryCode)
+    {
+        const int width = 52;
+        const int height = 32;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color32[] pixels = new Color32[width * height];
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = Color.clear;
+        }
+
+        switch (countryCode)
+        {
+            case "EU":
+                DrawSolid(pixels, width, height, new Color32(0, 51, 153, 255));
+                DrawCircleRing(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 9f, new Color32(255, 204, 0, 255));
+                break;
+            case "FR":
+                DrawVerticalBand(pixels, width, height, 0, width / 3, new Color32(0, 38, 84, 255));
+                DrawVerticalBand(pixels, width, height, width / 3, width / 3, Color.white);
+                DrawVerticalBand(pixels, width, height, width * 2 / 3, width - width * 2 / 3, new Color32(206, 17, 38, 255));
+                break;
+            case "INTL":
+                DrawSolid(pixels, width, height, new Color32(8, 20, 34, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 10f, new Color32(70, 180, 255, 255));
+                DrawHorizontalBand(pixels, width, height, height / 2 - 1, 2, new Color32(8, 20, 34, 255));
+                DrawVerticalBand(pixels, width, height, width / 2 - 1, 2, new Color32(8, 20, 34, 255));
+                break;
+            default:
+                DrawUnitedStatesFlag(pixels, width, height);
+                break;
+        }
+
+        texture.SetPixels32(pixels);
+        texture.Apply();
+        return texture;
+    }
+
+    static void DrawUnitedStatesFlag(Color32[] pixels, int width, int height)
+    {
+        Color32 red = new Color32(179, 25, 66, 255);
+        Color32 blue = new Color32(10, 49, 97, 255);
+        for (int stripe = 0; stripe < 13; stripe++)
+        {
+            int y = Mathf.RoundToInt(stripe * height / 13f);
+            int nextY = Mathf.RoundToInt((stripe + 1) * height / 13f);
+            DrawHorizontalBand(pixels, width, height, y, Mathf.Max(1, nextY - y), stripe % 2 == 0 ? red : Color.white);
+        }
+
+        DrawRect(pixels, width, height, 0, height - Mathf.RoundToInt(height * 7f / 13f), Mathf.RoundToInt(width * 0.42f), Mathf.RoundToInt(height * 7f / 13f), blue);
+    }
+
+    static void DrawSolid(Color32[] pixels, int width, int height, Color32 color)
+    {
+        DrawRect(pixels, width, height, 0, 0, width, height, color);
+    }
+
+    static void DrawVerticalBand(Color32[] pixels, int width, int height, int x, int bandWidth, Color32 color)
+    {
+        DrawRect(pixels, width, height, x, 0, bandWidth, height, color);
+    }
+
+    static void DrawHorizontalBand(Color32[] pixels, int width, int height, int y, int bandHeight, Color32 color)
+    {
+        DrawRect(pixels, width, height, 0, y, width, bandHeight, color);
+    }
+
+    static void DrawRect(Color32[] pixels, int width, int height, int x, int y, int rectWidth, int rectHeight, Color32 color)
+    {
+        int maxX = Mathf.Min(width, x + rectWidth);
+        int maxY = Mathf.Min(height, y + rectHeight);
+        for (int py = Mathf.Max(0, y); py < maxY; py++)
+        {
+            for (int px = Mathf.Max(0, x); px < maxX; px++)
+            {
+                pixels[py * width + px] = color;
+            }
+        }
+    }
+
+    static void DrawDisc(Color32[] pixels, int width, int height, Vector2 center, float radius, Color32 color)
+    {
+        float radiusSquared = radius * radius;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Vector2 delta = new Vector2(x + 0.5f, y + 0.5f) - center;
+                if (delta.sqrMagnitude <= radiusSquared)
+                {
+                    pixels[y * width + x] = color;
+                }
+            }
+        }
+    }
+
+    static void DrawCircleRing(Color32[] pixels, int width, int height, Vector2 center, float radius, Color32 color)
+    {
+        for (int i = 0; i < 12; i++)
+        {
+            float angle = i * Mathf.PI * 2f / 12f;
+            Vector2 point = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+            DrawDisc(pixels, width, height, point, 1.2f, color);
         }
     }
 

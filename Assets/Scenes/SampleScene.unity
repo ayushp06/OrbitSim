@@ -20,9 +20,9 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.015, g: 0.018, b: 0.028, a: 1}
-  m_AmbientEquatorColor: {r: 0.005, g: 0.006, b: 0.01, a: 1}
-  m_AmbientGroundColor: {r: 0.002, g: 0.002, b: 0.004, a: 1}
+  m_AmbientSkyColor: {r: 0.025, g: 0.03, b: 0.045, a: 1}
+  m_AmbientEquatorColor: {r: 0.012, g: 0.014, b: 0.02, a: 1}
+  m_AmbientGroundColor: {r: 0.004, g: 0.004, b: 0.006, a: 1}
   m_AmbientIntensity: 0.35
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.15
+  m_ReflectionIntensity: 0.2
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
   m_UseRadianceAmbientProbe: 0
@@ -492,7 +492,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.05
-  far clip plane: 500
+  far clip plane: 250000
   field of view: 70
   orthographic: 0
   orthographic size: 5
@@ -841,7 +841,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.84, a: 1}
-  m_Intensity: 1.25
+  m_Intensity: 1.45
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -850,7 +850,7 @@ Light:
     m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.45
+    m_Strength: 0.35
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -913,8 +913,8 @@ MonoBehaviour:
   orbitInclinationDegrees: 23.4
   startingAngleDegrees: 0
   sunLight: {fileID: 705507994}
-  softenedIntensity: 1.25
-  shadowStrength: 0.45
+  softenedIntensity: 1.45
+  shadowStrength: 0.35
   sunColor: {r: 1, g: 0.95, b: 0.82, a: 1}
 --- !u!4 &705507995
 Transform:
