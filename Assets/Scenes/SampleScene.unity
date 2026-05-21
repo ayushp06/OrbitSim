@@ -703,7 +703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   streamingAssetsRelativePath: TLE/leo-sample.tle
-  downloadTleAtRuntime: 1
+  downloadTleAtRuntime: 0
   tleUrl: https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=TLE
   fallbackToStreamingAssets: 1
   tleTextOverride: {fileID: 0}
@@ -733,7 +733,7 @@ MonoBehaviour:
   timeScale: 120
   simulationSpeedMultiplier: 1
   simulationPaused: 0
-  maxSatellitesForTesting: 1
+  maxSatellitesForTesting: 10
   orbitLinesEnabled: 0
   satellitePositionUpdateInterval: 0
   maxSatellitePositionUpdatesPerFrame: 0

@@ -222,14 +222,35 @@ public class SatelliteTleData
 
         switch (noradCatalogId)
         {
-            case 33591:
-                SetMetadata("United States", "NOAA", "NOAA 19 polar-orbiting weather satellite");
-                break;
             case 25544:
                 SetMetadata("International", "International Space Station partners", "Crewed low Earth orbit space station");
                 break;
             case 20580:
                 SetMetadata("United States", "NASA / ESA", "Hubble Space Telescope");
+                break;
+            case 25994:
+                SetMetadata("United States", "NASA / JAXA / ASTER partners", "Terra Earth-observing satellite");
+                break;
+            case 27424:
+                SetMetadata("United States", "NASA", "Aqua Earth-observing satellite");
+                break;
+            case 28376:
+                SetMetadata("United States", "NASA", "Aura atmospheric chemistry research satellite");
+                break;
+            case 29108:
+                SetMetadata("United States / France", "NASA / CNES", "CALIPSO cloud and aerosol lidar mission");
+                break;
+            case 33591:
+                SetMetadata("United States", "NOAA", "NOAA 19 polar-orbiting weather satellite");
+                break;
+            case 37849:
+                SetMetadata("United States", "NOAA / NASA", "Suomi NPP weather and climate observation satellite");
+                break;
+            case 39084:
+                SetMetadata("United States", "NASA / USGS", "Landsat 8 Earth-imaging satellite");
+                break;
+            case 40697:
+                SetMetadata("European Union", "European Space Agency", "Sentinel-2A multispectral Earth-observation satellite");
                 break;
         }
     }
