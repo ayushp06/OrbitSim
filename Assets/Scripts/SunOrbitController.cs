@@ -25,6 +25,9 @@ public class SunOrbitController : MonoBehaviour
     public bool spinEarthOnAxis = true;
     public float earthAxialTiltDegrees = 23.4393f;
     public float startingEarthRotationDegrees;
+    public bool smoothEarthRotation = true;
+    [Min(0.1f)]
+    public float earthRotationSmoothing = 18f;
 
     [Header("Lighting")]
     public Light sunLight;
@@ -54,6 +57,8 @@ public class SunOrbitController : MonoBehaviour
     double simulatedSeconds;
     Transform sunVisual;
     Material sunVisualMaterial;
+    Quaternion targetEarthVisualRotation = Quaternion.identity;
+    bool hasEarthVisualRotationTarget;
 
     void Awake()
     {
@@ -88,6 +93,11 @@ public class SunOrbitController : MonoBehaviour
         float effectiveTimeScale = simulationClock != null ? simulationClock.EffectiveTimeScale : 1f;
         simulatedSeconds += Time.deltaTime * effectiveTimeScale;
         UpdateSolarSystem();
+    }
+
+    void LateUpdate()
+    {
+        ApplyEarthVisualRotation();
     }
 
     void ApplyLightSettings()
@@ -128,7 +138,7 @@ public class SunOrbitController : MonoBehaviour
             earthReference.position = earthPosition;
         }
 
-        UpdateEarthSpin();
+        UpdateEarthSpinTarget();
         UpdateSunLight(earthPosition);
         UpdateObserver(earthPosition);
         ExpandCameraFarClipPlanes(GetSunDistanceWorldUnits());
@@ -146,17 +156,34 @@ public class SunOrbitController : MonoBehaviour
         return orbitRotation * (Vector3.forward * GetSunDistanceWorldUnits());
     }
 
-    void UpdateEarthSpin()
+    void UpdateEarthSpinTarget()
     {
         if (!spinEarthOnAxis || earthVisual == null)
         {
             return;
         }
 
-        float rotationAngle = startingEarthRotationDegrees + (float)(simulatedSeconds / EarthSiderealDaySeconds * 360d);
+        float rotationAngle = Mathf.Repeat(startingEarthRotationDegrees + (float)(simulatedSeconds / EarthSiderealDaySeconds * 360d), 360f);
         Quaternion axialTilt = Quaternion.Euler(0f, 0f, -earthAxialTiltDegrees);
         Quaternion dailySpin = Quaternion.Euler(0f, rotationAngle, 0f);
-        earthVisual.localRotation = axialTilt * dailySpin;
+        targetEarthVisualRotation = axialTilt * dailySpin;
+        hasEarthVisualRotationTarget = true;
+
+        if (!smoothEarthRotation)
+        {
+            earthVisual.localRotation = targetEarthVisualRotation;
+        }
+    }
+
+    void ApplyEarthVisualRotation()
+    {
+        if (!smoothEarthRotation || !hasEarthVisualRotationTarget || earthVisual == null)
+        {
+            return;
+        }
+
+        float blend = 1f - Mathf.Exp(-Mathf.Max(0.1f, earthRotationSmoothing) * Time.deltaTime);
+        earthVisual.localRotation = Quaternion.Slerp(earthVisual.localRotation, targetEarthVisualRotation, blend);
     }
 
     void UpdateSunLight(Vector3 earthPosition)
