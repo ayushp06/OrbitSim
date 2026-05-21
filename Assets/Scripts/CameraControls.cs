@@ -67,4 +67,12 @@ public class FlyCameraNewInput : MonoBehaviour
         Vector3 move = (transform.right * x) + (transform.forward * z) + (transform.up * y);
         transform.position += move * speed * Time.deltaTime;
     }
+
+    public void SyncLookAnglesFromTransform()
+    {
+        Vector3 e = transform.eulerAngles;
+        yaw = e.y;
+        pitch = e.x > 180f ? e.x - 360f : e.x;
+        pitch = Mathf.Clamp(pitch, -89f, 89f);
+    }
 }

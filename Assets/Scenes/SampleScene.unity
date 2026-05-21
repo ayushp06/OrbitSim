@@ -771,13 +771,17 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   maxHoverDistance: 500
-  hoverSphereCastRadius: 1.5
+  hoverSphereCastRadius: 0
+  enableClickToTrack: 1
+  trackingCamera: {fileID: 142002}
+  rotateCameraToTrackedSatellite: 1
+  trackingTurnSpeedDegreesPerSecond: 180
   showDesktopCrosshair: 1
   crosshairColor: {r: 0.95, g: 1, b: 1, a: 0.9}
   crosshairSize: 8
   crosshairThickness: 1
   highlightColor: {r: 0.2, g: 1, b: 1, a: 1}
-  highlightedScaleMultiplier: 1.6
+  highlightedScaleMultiplier: 1
   onHoveredSatelliteChanged:
     m_PersistentCalls:
       m_Calls: []

@@ -25,7 +25,13 @@ public class SatelliteHoverController : MonoBehaviour
     [Header("Raycast")]
     public LayerMask satelliteLayerMask = ~0;
     public float maxHoverDistance = 500f;
-    public float hoverSphereCastRadius = 1.5f;
+    public float hoverSphereCastRadius = 0f;
+
+    [Header("Click Tracking")]
+    public bool enableClickToTrack = true;
+    public Camera trackingCamera;
+    public bool rotateCameraToTrackedSatellite = true;
+    public float trackingTurnSpeedDegreesPerSecond = 180f;
 
     [Header("Desktop Crosshair")]
     public bool showDesktopCrosshair = true;
@@ -35,7 +41,7 @@ public class SatelliteHoverController : MonoBehaviour
 
     [Header("Highlight")]
     public Color highlightColor = new Color(0.2f, 1f, 1f, 1f);
-    public float highlightedScaleMultiplier = 1.6f;
+    public float highlightedScaleMultiplier = 1f;
 
     [Header("Events")]
     public SatelliteHoverChangedEvent onHoveredSatelliteChanged = new SatelliteHoverChangedEvent();
@@ -47,8 +53,11 @@ public class SatelliteHoverController : MonoBehaviour
     Vector3 originalScale;
     MaterialPropertyBlock highlightPropertyBlock;
     RectTransform crosshairRect;
+    SatelliteInfo trackedSatellite;
+    FlyCameraNewInput flyCameraControls;
 
     public SatelliteInfo HoveredSatellite => hoveredSatellite;
+    public SatelliteInfo TrackedSatellite => trackedSatellite;
 
     void Awake()
     {
@@ -59,16 +68,27 @@ public class SatelliteHoverController : MonoBehaviour
             mouseHoverCamera = Camera.main;
         }
 
+        if (trackingCamera == null)
+        {
+            trackingCamera = mouseHoverCamera;
+        }
+
+        if (trackingCamera != null)
+        {
+            flyCameraControls = trackingCamera.GetComponent<FlyCameraNewInput>();
+        }
+
         BuildDesktopCrosshair();
     }
 
     void Update()
     {
         UpdateDesktopCrosshair();
+        HandleClickTrackingInput();
 
-        SatelliteInfo nextHovered = null;
+        SatelliteInfo nextHovered = trackedSatellite;
 
-        if (enableDesktopMouseHover)
+        if (nextHovered == null && enableDesktopMouseHover)
         {
             nextHovered = RaycastDesktopMouse();
         }
@@ -79,6 +99,71 @@ public class SatelliteHoverController : MonoBehaviour
         }
 
         SetHoveredSatellite(nextHovered);
+    }
+
+    void LateUpdate()
+    {
+        UpdateTrackedCameraAim();
+    }
+
+    void HandleClickTrackingInput()
+    {
+        if (!enableClickToTrack || !WasPrimaryClickPressed())
+        {
+            return;
+        }
+
+        if (trackedSatellite != null)
+        {
+            ClearTrackedSatellite();
+            return;
+        }
+
+        SatelliteInfo clickedSatellite = RaycastDesktopMouse();
+        if (clickedSatellite == null && enableVrRayHover)
+        {
+            clickedSatellite = RaycastVrRays();
+        }
+
+        if (clickedSatellite != null)
+        {
+            SetTrackedSatellite(clickedSatellite);
+        }
+    }
+
+    void SetTrackedSatellite(SatelliteInfo satellite)
+    {
+        trackedSatellite = satellite;
+    }
+
+    void ClearTrackedSatellite()
+    {
+        trackedSatellite = null;
+        if (flyCameraControls != null)
+        {
+            flyCameraControls.SyncLookAnglesFromTransform();
+        }
+    }
+
+    void UpdateTrackedCameraAim()
+    {
+        if (!rotateCameraToTrackedSatellite || trackedSatellite == null || trackingCamera == null)
+        {
+            return;
+        }
+
+        Vector3 toSatellite = trackedSatellite.transform.position - trackingCamera.transform.position;
+        if (toSatellite.sqrMagnitude <= 0.0001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(toSatellite.normalized, Vector3.up);
+        float turnSpeed = Mathf.Max(1f, trackingTurnSpeedDegreesPerSecond);
+        trackingCamera.transform.rotation = Quaternion.RotateTowards(
+            trackingCamera.transform.rotation,
+            targetRotation,
+            turnSpeed * Time.deltaTime);
     }
 
     SatelliteInfo RaycastDesktopMouse()
@@ -313,6 +398,15 @@ public class SatelliteHoverController : MonoBehaviour
 #else
         mousePosition = Input.mousePosition;
         return true;
+#endif
+    }
+
+    static bool WasPrimaryClickPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+#else
+        return Input.GetMouseButtonDown(0);
 #endif
     }
 }
