@@ -208,8 +208,16 @@ public class SatelliteTleInfoPanel : MonoBehaviour
 
     string BuildSatelliteText(SatelliteTleData data)
     {
-        var builder = new StringBuilder(768);
-        builder.AppendLine(data.satelliteName);
+        var builder = new StringBuilder(512);
+        builder.Append(data.satelliteName);
+        string flag = GetCountryFlag(data);
+        if (!string.IsNullOrEmpty(flag))
+        {
+            builder.Append(' ');
+            builder.Append(flag);
+        }
+
+        builder.AppendLine();
         builder.AppendLine();
         AppendValue(builder, "Country of Origin", data.hasCountryOfOrigin, data.countryOfOrigin);
         AppendValue(builder, "Owner / Operator", data.hasOwnerOperator, data.ownerOperator);
@@ -224,16 +232,6 @@ public class SatelliteTleInfoPanel : MonoBehaviour
         AppendValue(builder, "Arg Perigee", data.hasArgumentOfPerigee, FormatDegrees(data.argumentOfPerigee));
         AppendValue(builder, "Mean Anomaly", data.hasMeanAnomaly, FormatDegrees(data.meanAnomaly));
         AppendValue(builder, "Mean Motion", data.hasMeanMotion, data.meanMotion.ToString("0.00000000", CultureInfo.InvariantCulture) + " rev/day");
-        if (!string.IsNullOrWhiteSpace(data.dataSource))
-        {
-            AppendValue(builder, "TLE Source", true, data.dataSource);
-        }
-
-        builder.AppendLine();
-        builder.AppendLine("TLE Line 1:");
-        builder.AppendLine(data.line1);
-        builder.AppendLine("TLE Line 2:");
-        builder.AppendLine(data.line2);
         return builder.ToString();
     }
 
@@ -247,6 +245,28 @@ public class SatelliteTleInfoPanel : MonoBehaviour
     static string FormatDegrees(double degrees)
     {
         return degrees.ToString("0.0000", CultureInfo.InvariantCulture) + " deg";
+    }
+
+    static string GetCountryFlag(SatelliteTleData data)
+    {
+        if (data == null || !data.hasCountryOfOrigin || string.IsNullOrWhiteSpace(data.countryOfOrigin))
+        {
+            return string.Empty;
+        }
+
+        switch (data.countryOfOrigin)
+        {
+            case "European Union":
+                return "🇪🇺";
+            case "International":
+                return "🌐";
+            case "United States":
+                return "🇺🇸";
+            case "United States / France":
+                return "🇺🇸 🇫🇷";
+            default:
+                return string.Empty;
+        }
     }
 
     static Font GetBuiltInFont()
