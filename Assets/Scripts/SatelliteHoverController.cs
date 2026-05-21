@@ -88,11 +88,9 @@ public class SatelliteHoverController : MonoBehaviour
             return null;
         }
 
-        Vector2 rayPosition = useScreenCenterForDesktopHover
-            ? new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
-            : GetMousePositionOrCenter();
-
-        Ray ray = mouseHoverCamera.ScreenPointToRay(rayPosition);
+        Ray ray = useScreenCenterForDesktopHover
+            ? mouseHoverCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f))
+            : mouseHoverCamera.ScreenPointToRay(GetMousePositionOrCenter());
         return RaycastSatellite(ray);
     }
 
@@ -123,18 +121,44 @@ public class SatelliteHoverController : MonoBehaviour
 
     SatelliteInfo RaycastSatellite(Ray ray)
     {
-        if (hoverSphereCastRadius > 0f &&
-            Physics.SphereCast(ray, hoverSphereCastRadius, out RaycastHit sphereHit, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide))
+        if (hoverSphereCastRadius > 0f)
         {
-            return sphereHit.collider.GetComponentInParent<SatelliteInfo>();
+            RaycastHit[] sphereHits = Physics.SphereCastAll(ray, hoverSphereCastRadius, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide);
+            SatelliteInfo sphereSatellite = FindNearestSatelliteHit(sphereHits);
+            if (sphereSatellite != null)
+            {
+                return sphereSatellite;
+            }
         }
 
-        if (!Physics.Raycast(ray, out RaycastHit hit, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide))
+        RaycastHit[] rayHits = Physics.RaycastAll(ray, maxHoverDistance, satelliteLayerMask, QueryTriggerInteraction.Collide);
+        return FindNearestSatelliteHit(rayHits);
+    }
+
+    static SatelliteInfo FindNearestSatelliteHit(RaycastHit[] hits)
+    {
+        if (hits == null || hits.Length == 0)
         {
             return null;
         }
 
-        return hit.collider.GetComponentInParent<SatelliteInfo>();
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            SatelliteInfo satellite = hitCollider.GetComponentInParent<SatelliteInfo>();
+            if (satellite != null)
+            {
+                return satellite;
+            }
+        }
+
+        return null;
     }
 
     void BuildDesktopCrosshair()
