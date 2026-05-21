@@ -1,20 +1,30 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[DefaultExecutionOrder(-100)]
 public class SunOrbitController : MonoBehaviour
 {
     const double EarthRadiusKilometers = 6371.0d;
     const double AstronomicalUnitKilometers = 149597870.7d;
     const double SunRadiusKilometers = 695700.0d;
+    const double EarthSiderealDaySeconds = 86164.0905d;
+    const double EarthSiderealYearSeconds = 31558149.7632d;
 
     [Header("References")]
     public SatelliteManager simulationClock;
     public Transform earthReference;
+    public Transform earthVisual;
+    public Transform observerRig;
 
-    [Header("Orbit")]
-    public float simulatedSecondsPerSunOrbit = 86400f;
-    public float orbitInclinationDegrees = 23.4f;
-    public float startingAngleDegrees;
+    [Header("Earth Orbit")]
+    public bool orbitEarthAroundSun = true;
+    public float startingEarthOrbitAngleDegrees;
+    public float earthOrbitInclinationDegrees;
+
+    [Header("Earth Rotation")]
+    public bool spinEarthOnAxis = true;
+    public float earthAxialTiltDegrees = 23.4393f;
+    public float startingEarthRotationDegrees;
 
     [Header("Lighting")]
     public Light sunLight;
@@ -29,6 +39,10 @@ public class SunOrbitController : MonoBehaviour
     public float sunVisualScaleMultiplier = 1f;
     public bool expandCameraFarClipPlanes = true;
 
+    [Header("Observer")]
+    public bool keepObserverNearEarth = true;
+    public Vector3 observerOffsetFromEarth = new Vector3(0f, 20f, -55f);
+
     [Header("Ambient Fill")]
     public bool applyAmbientFill = true;
     public Color ambientSkyColor = new Color(0.025f, 0.03f, 0.045f, 1f);
@@ -37,7 +51,7 @@ public class SunOrbitController : MonoBehaviour
     [Range(0f, 1f)]
     public float reflectionIntensity = 0.2f;
 
-    float simulatedSunSeconds;
+    double simulatedSeconds;
     Transform sunVisual;
     Material sunVisualMaterial;
 
@@ -58,17 +72,22 @@ public class SunOrbitController : MonoBehaviour
             earthReference = simulationClock.earthReference;
         }
 
+        if (earthVisual == null && simulationClock != null)
+        {
+            earthVisual = simulationClock.earthVisual;
+        }
+
         ApplyLightSettings();
         ApplyAmbientFill();
         EnsureSunVisual();
-        UpdateSunDirection();
+        UpdateSolarSystem();
     }
 
     void Update()
     {
         float effectiveTimeScale = simulationClock != null ? simulationClock.EffectiveTimeScale : 1f;
-        simulatedSunSeconds += Time.deltaTime * effectiveTimeScale;
-        UpdateSunDirection();
+        simulatedSeconds += Time.deltaTime * effectiveTimeScale;
+        UpdateSolarSystem();
     }
 
     void ApplyLightSettings()
@@ -98,19 +117,62 @@ public class SunOrbitController : MonoBehaviour
         RenderSettings.reflectionIntensity = reflectionIntensity;
     }
 
-    void UpdateSunDirection()
+    void UpdateSolarSystem()
     {
-        float orbitDuration = Mathf.Max(1f, simulatedSecondsPerSunOrbit);
-        float orbitAngle = startingAngleDegrees + (simulatedSunSeconds / orbitDuration) * 360f;
-        Quaternion orbitRotation = Quaternion.Euler(orbitInclinationDegrees, orbitAngle, 0f);
-        Vector3 sunDirectionFromEarth = orbitRotation * Vector3.forward;
-
-        Vector3 origin = earthReference != null ? earthReference.position : Vector3.zero;
-        float sunDistance = GetSunDistanceWorldUnits();
-        transform.position = origin + sunDirectionFromEarth * sunDistance;
-        transform.rotation = Quaternion.LookRotation(-sunDirectionFromEarth, Vector3.up);
+        transform.position = Vector3.zero;
         UpdateSunVisualScale();
-        ExpandCameraFarClipPlanes(sunDistance);
+
+        Vector3 earthPosition = GetEarthPosition();
+        if (earthReference != null)
+        {
+            earthReference.position = earthPosition;
+        }
+
+        UpdateEarthSpin();
+        UpdateSunLight(earthPosition);
+        UpdateObserver(earthPosition);
+        ExpandCameraFarClipPlanes(GetSunDistanceWorldUnits());
+    }
+
+    Vector3 GetEarthPosition()
+    {
+        if (!orbitEarthAroundSun)
+        {
+            return earthReference != null ? earthReference.position : Vector3.zero;
+        }
+
+        float orbitAngle = startingEarthOrbitAngleDegrees + (float)(simulatedSeconds / EarthSiderealYearSeconds * 360d);
+        Quaternion orbitRotation = Quaternion.Euler(earthOrbitInclinationDegrees, orbitAngle, 0f);
+        return orbitRotation * (Vector3.forward * GetSunDistanceWorldUnits());
+    }
+
+    void UpdateEarthSpin()
+    {
+        if (!spinEarthOnAxis || earthVisual == null)
+        {
+            return;
+        }
+
+        float rotationAngle = startingEarthRotationDegrees + (float)(simulatedSeconds / EarthSiderealDaySeconds * 360d);
+        Quaternion axialTilt = Quaternion.Euler(0f, 0f, -earthAxialTiltDegrees);
+        Quaternion dailySpin = Quaternion.Euler(0f, rotationAngle, 0f);
+        earthVisual.localRotation = axialTilt * dailySpin;
+    }
+
+    void UpdateSunLight(Vector3 earthPosition)
+    {
+        Vector3 directionToEarth = earthPosition.sqrMagnitude > 0.0001f ? earthPosition.normalized : Vector3.forward;
+        transform.rotation = Quaternion.LookRotation(directionToEarth, Vector3.up);
+    }
+
+    void UpdateObserver(Vector3 earthPosition)
+    {
+        if (!keepObserverNearEarth || observerRig == null)
+        {
+            return;
+        }
+
+        observerRig.position = earthPosition + observerOffsetFromEarth;
     }
 
     float GetSunDistanceWorldUnits()

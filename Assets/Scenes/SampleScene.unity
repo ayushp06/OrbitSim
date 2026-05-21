@@ -729,7 +729,7 @@ MonoBehaviour:
   satellitesParent: {fileID: 120001}
   orbitVisualsParent: {fileID: 130001}
   earthRadiusWorldUnits: 10
-  orbitAltitudeExaggeration: 18
+  orbitAltitudeExaggeration: 1
   timeScale: 120
   simulationSpeedMultiplier: 1
   simulationPaused: 0
@@ -909,13 +909,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   simulationClock: {fileID: 161003}
   earthReference: {fileID: 110001}
-  simulatedSecondsPerSunOrbit: 86400
-  orbitInclinationDegrees: 23.4
-  startingAngleDegrees: 0
+  earthVisual: {fileID: 111001}
+  observerRig: {fileID: 140001}
+  orbitEarthAroundSun: 1
+  startingEarthOrbitAngleDegrees: 0
+  earthOrbitInclinationDegrees: 0
+  spinEarthOnAxis: 1
+  earthAxialTiltDegrees: 23.4393
+  startingEarthRotationDegrees: 0
   sunLight: {fileID: 705507994}
   softenedIntensity: 1.45
   shadowStrength: 0.35
   sunColor: {r: 1, g: 0.95, b: 0.82, a: 1}
+  useEarthScaleSunDistance: 1
+  fallbackSunDistanceWorldUnits: 100
+  createSunVisual: 1
+  sunVisualScaleMultiplier: 1
+  expandCameraFarClipPlanes: 1
+  keepObserverNearEarth: 1
+  observerOffsetFromEarth: {x: 0, y: 20, z: -55}
+  applyAmbientFill: 1
+  ambientSkyColor: {r: 0.025, g: 0.03, b: 0.045, a: 1}
+  ambientEquatorColor: {r: 0.012, g: 0.014, b: 0.02, a: 1}
+  ambientGroundColor: {r: 0.004, g: 0.004, b: 0.006, a: 1}
+  reflectionIntensity: 0.2
 --- !u!4 &705507995
 Transform:
   m_ObjectHideFlags: 0
