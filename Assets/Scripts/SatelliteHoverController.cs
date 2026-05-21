@@ -33,7 +33,8 @@ public class SatelliteHoverController : MonoBehaviour
     public bool enableClickToTrack = true;
     public Camera trackingCamera;
     public bool rotateCameraToTrackedSatellite = true;
-    public float trackingTurnSpeedDegreesPerSecond = 180f;
+    public float trackingTurnSpeedDegreesPerSecond = 720f;
+    public bool disableFlyCameraInputWhileTracking = true;
 
     [Header("Desktop Crosshair")]
     public bool showDesktopCrosshair = true;
@@ -136,6 +137,7 @@ public class SatelliteHoverController : MonoBehaviour
     void SetTrackedSatellite(SatelliteInfo satellite)
     {
         trackedSatellite = satellite;
+        SetFlyCameraInputEnabled(false);
     }
 
     void ClearTrackedSatellite()
@@ -145,6 +147,8 @@ public class SatelliteHoverController : MonoBehaviour
         {
             flyCameraControls.SyncLookAnglesFromTransform();
         }
+
+        SetFlyCameraInputEnabled(true);
     }
 
     void UpdateTrackedCameraAim()
@@ -166,6 +170,21 @@ public class SatelliteHoverController : MonoBehaviour
             trackingCamera.transform.rotation,
             targetRotation,
             turnSpeed * Time.deltaTime);
+
+        if (flyCameraControls != null)
+        {
+            flyCameraControls.SyncLookAnglesFromTransform();
+        }
+    }
+
+    void SetFlyCameraInputEnabled(bool enabled)
+    {
+        if (!disableFlyCameraInputWhileTracking || flyCameraControls == null)
+        {
+            return;
+        }
+
+        flyCameraControls.enabled = enabled;
     }
 
     SatelliteInfo FindDesktopSatelliteTarget()

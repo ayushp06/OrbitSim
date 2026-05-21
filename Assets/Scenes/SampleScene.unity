@@ -776,7 +776,8 @@ MonoBehaviour:
   enableClickToTrack: 1
   trackingCamera: {fileID: 142002}
   rotateCameraToTrackedSatellite: 1
-  trackingTurnSpeedDegreesPerSecond: 180
+  trackingTurnSpeedDegreesPerSecond: 720
+  disableFlyCameraInputWhileTracking: 1
   showDesktopCrosshair: 1
   crosshairColor: {r: 0.95, g: 1, b: 1, a: 0.9}
   crosshairSize: 8
