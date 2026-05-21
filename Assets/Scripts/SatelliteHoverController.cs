@@ -26,6 +26,8 @@ public class SatelliteHoverController : MonoBehaviour
     public LayerMask satelliteLayerMask = ~0;
     public float maxHoverDistance = 500f;
     public float hoverSphereCastRadius = 0f;
+    [Tooltip("Desktop crosshair pick radius in screen pixels around the satellite marker center.")]
+    public float desktopHoverScreenRadiusPixels = 12f;
 
     [Header("Click Tracking")]
     public bool enableClickToTrack = true;
@@ -90,7 +92,7 @@ public class SatelliteHoverController : MonoBehaviour
 
         if (nextHovered == null && enableDesktopMouseHover)
         {
-            nextHovered = RaycastDesktopMouse();
+            nextHovered = FindDesktopSatelliteTarget();
         }
 
         if (nextHovered == null && enableVrRayHover)
@@ -119,7 +121,7 @@ public class SatelliteHoverController : MonoBehaviour
             return;
         }
 
-        SatelliteInfo clickedSatellite = RaycastDesktopMouse();
+        SatelliteInfo clickedSatellite = FindDesktopSatelliteTarget();
         if (clickedSatellite == null && enableVrRayHover)
         {
             clickedSatellite = RaycastVrRays();
@@ -166,17 +168,88 @@ public class SatelliteHoverController : MonoBehaviour
             turnSpeed * Time.deltaTime);
     }
 
-    SatelliteInfo RaycastDesktopMouse()
+    SatelliteInfo FindDesktopSatelliteTarget()
     {
         if (mouseHoverCamera == null)
         {
             return null;
         }
 
-        Ray ray = useScreenCenterForDesktopHover
-            ? mouseHoverCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f))
-            : mouseHoverCamera.ScreenPointToRay(GetMousePositionOrCenter());
-        return RaycastSatellite(ray);
+        Vector2 targetScreenPoint = useScreenCenterForDesktopHover
+            ? new Vector2(mouseHoverCamera.pixelWidth * 0.5f, mouseHoverCamera.pixelHeight * 0.5f)
+            : GetMousePositionOrCenter();
+
+        SatelliteInfo[] satellites = FindObjectsByType<SatelliteInfo>(FindObjectsSortMode.None);
+        SatelliteInfo nearestSatellite = null;
+        float bestScreenDistanceSquared = Mathf.Max(0f, desktopHoverScreenRadiusPixels) * Mathf.Max(0f, desktopHoverScreenRadiusPixels);
+        float bestDepth = float.MaxValue;
+
+        for (int i = 0; i < satellites.Length; i++)
+        {
+            SatelliteInfo satellite = satellites[i];
+            if (satellite == null)
+            {
+                continue;
+            }
+
+            Vector3 viewportPoint = mouseHoverCamera.WorldToViewportPoint(satellite.transform.position);
+            if (viewportPoint.z <= 0f || viewportPoint.x < 0f || viewportPoint.x > 1f || viewportPoint.y < 0f || viewportPoint.y > 1f)
+            {
+                continue;
+            }
+
+            float depth = Vector3.Distance(mouseHoverCamera.transform.position, satellite.transform.position);
+            if (depth > maxHoverDistance || IsSatelliteOccluded(satellite, depth))
+            {
+                continue;
+            }
+
+            Vector2 satelliteScreenPoint = new Vector2(viewportPoint.x * mouseHoverCamera.pixelWidth, viewportPoint.y * mouseHoverCamera.pixelHeight);
+            float screenDistanceSquared = (satelliteScreenPoint - targetScreenPoint).sqrMagnitude;
+            if (screenDistanceSquared <= bestScreenDistanceSquared && depth < bestDepth)
+            {
+                bestScreenDistanceSquared = screenDistanceSquared;
+                bestDepth = depth;
+                nearestSatellite = satellite;
+            }
+        }
+
+        return nearestSatellite;
+    }
+
+    bool IsSatelliteOccluded(SatelliteInfo satellite, float satelliteDistance)
+    {
+        Vector3 origin = mouseHoverCamera.transform.position;
+        Vector3 toSatellite = satellite.transform.position - origin;
+        if (toSatellite.sqrMagnitude <= 0.0001f)
+        {
+            return false;
+        }
+
+        Ray ray = new Ray(origin, toSatellite.normalized);
+        RaycastHit[] hits = Physics.RaycastAll(ray, satelliteDistance, satelliteLayerMask, QueryTriggerInteraction.Collide);
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            SatelliteInfo hitSatellite = hitCollider.GetComponentInParent<SatelliteInfo>();
+            if (hitSatellite == satellite)
+            {
+                return false;
+            }
+
+            if (hitSatellite == null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     SatelliteInfo RaycastVrRays()

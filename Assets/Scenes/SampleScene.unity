@@ -772,6 +772,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   maxHoverDistance: 500
   hoverSphereCastRadius: 0
+  desktopHoverScreenRadiusPixels: 12
   enableClickToTrack: 1
   trackingCamera: {fileID: 142002}
   rotateCameraToTrackedSatellite: 1
