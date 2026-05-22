@@ -733,7 +733,7 @@ MonoBehaviour:
   timeScale: 120
   simulationSpeedMultiplier: 1
   simulationPaused: 0
-  maxSatellitesForTesting: 20
+  maxSatellitesForTesting: 30
   orbitLinesEnabled: 0
   satellitePositionUpdateInterval: 0
   maxSatellitePositionUpdatesPerFrame: 0
@@ -847,7 +847,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.97, b: 0.86, a: 1}
-  m_Intensity: 2.4
+  m_Intensity: 1.45
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -926,9 +926,9 @@ MonoBehaviour:
   smoothEarthRotation: 1
   earthRotationSmoothing: 18
   sunLight: {fileID: 705507994}
-  softenedIntensity: 2.4
-  shadowStrength: 0.42
-  sunColor: {r: 1, g: 0.97, b: 0.86, a: 1}
+  softenedIntensity: 1.45
+  shadowStrength: 0.35
+  sunColor: {r: 1, g: 0.95, b: 0.82, a: 1}
   useEarthScaleSunDistance: 1
   fallbackSunDistanceWorldUnits: 100
   createSunVisual: 1
