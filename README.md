@@ -143,6 +143,22 @@ TLE/my-new-catalog.tle
 
 Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded markers while testing large catalogs.
 
+## Running The Built Application
+
+The repository includes a Windows build under:
+
+```text
+Application\
+```
+
+Run the app by launching:
+
+```text
+Application\EarthSatOrbitSim.exe
+```
+
+Keep `EarthSatOrbitSim.exe`, `UnityPlayer.dll`, and the `EarthSatOrbitSim_Data` folder together in the `Application` folder. Unity builds load scenes, managed assemblies, and the bundled `StreamingAssets` TLE catalog from that adjacent data folder.
+
 ## Running The Scene
 
 1. Open `Assets/Scenes/SampleScene.unity`.

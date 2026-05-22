@@ -589,7 +589,8 @@ public class SatelliteManager : MonoBehaviour
         {
             for (int px = Mathf.Max(0, x); px < maxX; px++)
             {
-                pixels[py * width + px] = color;
+                int textureY = height - 1 - py;
+                pixels[textureY * width + px] = color;
             }
         }
     }
