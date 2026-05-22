@@ -40,6 +40,8 @@ public class SunOrbitController : MonoBehaviour
     public float fallbackSunDistanceWorldUnits = 100f;
     public bool createSunVisual = true;
     public float sunVisualScaleMultiplier = 1f;
+    [Min(0.1f)]
+    public float minimumSunVisualDiameterWorldUnits = 180f;
     public bool expandCameraFarClipPlanes = true;
 
     [Header("Observer")]
@@ -269,6 +271,7 @@ public class SunOrbitController : MonoBehaviour
 
         float earthRadiusWorldUnits = simulationClock != null ? simulationClock.earthRadiusWorldUnits : 10f;
         float sunDiameterWorldUnits = (float)(SunRadiusKilometers / EarthRadiusKilometers) * earthRadiusWorldUnits * 2f;
+        sunDiameterWorldUnits = Mathf.Max(sunDiameterWorldUnits, minimumSunVisualDiameterWorldUnits);
         sunVisual.localPosition = Vector3.zero;
         sunVisual.localRotation = Quaternion.identity;
         sunVisual.localScale = Vector3.one * sunDiameterWorldUnits * Mathf.Max(0.001f, sunVisualScaleMultiplier);

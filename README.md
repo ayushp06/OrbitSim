@@ -1,6 +1,6 @@
 # OrbitSim
 
-OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene simulates NOAA 19, a real U.S. NOAA weather satellite, by pulling its Two-Line Element data from CelesTrak at runtime. If the runtime request fails, the simulation falls back to the bundled NOAA 19 TLE under StreamingAssets. The app propagates the satellite position around Earth, renders the satellite marker, and shows origin and TLE details when a user hovers over the satellite.
+OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene loads a bundled 20-satellite LEO sample catalog from StreamingAssets. The app propagates satellite positions around Earth, renders satellite markers, and shows origin and TLE details when a user hovers over a satellite.
 
 ## Required Unity Version
 
@@ -87,7 +87,7 @@ Assets/Scripts/SatelliteTleData.cs
 https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=TLE
 ```
 
-The default fallback path is:
+The default local catalog path is:
 
 ```text
 Assets/StreamingAssets/TLE/leo-sample.tle
@@ -117,11 +117,7 @@ SATELLITE NAME
 - mean anomaly
 - mean motion
 
-The hover panel also shows known catalog metadata for the selected sample satellite, including country of origin, owner/operator, and mission. The current default is NOAA 19:
-
-- Country of origin: United States
-- Owner/operator: NOAA
-- Mission: NOAA 19 polar-orbiting weather satellite
+The hover panel also shows known catalog metadata for the bundled sample satellites, including country of origin, owner/operator, and mission.
 
 Malformed records are skipped or reported with warnings so valid entries can continue loading.
 
@@ -151,10 +147,10 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 
 1. Open `Assets/Scenes/SampleScene.unity`.
 2. Press Play in the Unity Editor.
-3. The scene requests the configured NOAA 19 TLE from CelesTrak, then falls back to the local NOAA 19 TLE if needed.
+3. The scene loads the local `leo-sample.tle` catalog.
 4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
-5. The current demo configuration spawns one bright point-mass satellite marker and disables orbit paths.
-6. Hover over the satellite marker with the visible mouse crosshair to view country of origin, operator, mission, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
+5. The current demo configuration spawns 20 bright point-mass satellite markers and disables orbit paths.
+6. Hover over a satellite marker with the visible mouse crosshair to view country of origin, operator, mission, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
 
 To show more satellites later, raise or clear `SatelliteManager.maxSatellitesForTesting`. Keep `orbitLinesEnabled` off for a point-mass-only view.
 
@@ -172,7 +168,7 @@ Add this component to an enabled GameObject in a temporary test scene or attach 
 SGP.NET smoke test OK.
 ```
 
-or an exception if the checked-in SGP.NET assembly cannot be loaded or used. This script is only a dependency smoke test; it is not required for the default NOAA 19 scene.
+or an exception if the checked-in SGP.NET assembly cannot be loaded or used. This script is only a dependency smoke test; it is not required for the default scene.
 
 ## Desktop Controls
 
@@ -255,7 +251,7 @@ The scene uses a readable visualization scale:
 Important `SatelliteManager` settings:
 
 - `showOnlyLeoSatellites`: filters spawned markers to likely LEO satellites.
-- `maxSatellitesForTesting`: limits marker count for performance testing. The current demo uses `1`.
+- `maxSatellitesForTesting`: limits marker count for performance testing. The current demo uses `20`.
 - `orbitLinesEnabled`: enables or disables orbit lines. The current demo keeps this off for point-mass-only satellite visuals.
 - `maxOrbitLines`: caps orbit line count.
 - `satellitePositionUpdateInterval`: controls how often marker positions update.
@@ -269,7 +265,7 @@ Markers are spawned once and updated centrally. Marker transforms are cached so 
 - Full VR package setup is not complete. OpenXR, XR Plugin Management, and XR Interaction Toolkit still need to be added for production VR controller workflows.
 - SGP.NET is available and used when possible, but orbit-line previews and fallback propagation are approximate Keplerian visualizations.
 - The scale model intentionally exaggerates LEO altitude unless `orbitAltitudeExaggeration` is set to `1`.
-- The included TLE file is a one-satellite NOAA 19 fallback, not a complete live catalog.
+- The included TLE file is a curated 20-satellite LEO sample, not a complete live catalog.
 - Runtime TLE download depends on network access to CelesTrak; offline runs use the local fallback.
 - Very large catalogs may still need pooling, GPU instanced mesh rendering, culling, and deeper profiling for VR frame rates.
 

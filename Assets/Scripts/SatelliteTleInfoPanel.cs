@@ -406,6 +406,10 @@ public class SatelliteTleInfoPanel : MonoBehaviour
                 return new[] { "US" };
             case "United States / France":
                 return new[] { "US", "FR" };
+            case "United States / Japan":
+                return new[] { "US", "JP" };
+            case "China":
+                return new[] { "CN" };
             default:
                 return System.Array.Empty<string>();
         }
@@ -443,6 +447,14 @@ public class SatelliteTleInfoPanel : MonoBehaviour
                 DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 10f, new Color32(70, 180, 255, 255));
                 DrawHorizontalBand(pixels, width, height, height / 2 - 1, 2, new Color32(8, 20, 34, 255));
                 DrawVerticalBand(pixels, width, height, width / 2 - 1, 2, new Color32(8, 20, 34, 255));
+                break;
+            case "JP":
+                DrawSolid(pixels, width, height, Color.white);
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 8f, new Color32(188, 0, 45, 255));
+                break;
+            case "CN":
+                DrawSolid(pixels, width, height, new Color32(222, 41, 16, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.24f, height * 0.68f), 4f, new Color32(255, 222, 0, 255));
                 break;
             default:
                 DrawUnitedStatesFlag(pixels, width, height);
