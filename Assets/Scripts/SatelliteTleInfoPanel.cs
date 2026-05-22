@@ -391,28 +391,7 @@ public class SatelliteTleInfoPanel : MonoBehaviour
 
     static string[] GetCountryCodes(SatelliteTleData data)
     {
-        if (data == null || !data.hasCountryOfOrigin || string.IsNullOrWhiteSpace(data.countryOfOrigin))
-        {
-            return System.Array.Empty<string>();
-        }
-
-        switch (data.countryOfOrigin)
-        {
-            case "European Union":
-                return new[] { "EU" };
-            case "International":
-                return new[] { "INTL" };
-            case "United States":
-                return new[] { "US" };
-            case "United States / France":
-                return new[] { "US", "FR" };
-            case "United States / Japan":
-                return new[] { "US", "JP" };
-            case "China":
-                return new[] { "CN" };
-            default:
-                return System.Array.Empty<string>();
-        }
+        return SatelliteVisualMetadata.GetCountryCodes(data);
     }
 
     static Texture2D CreateFlagTexture(string countryCode)
@@ -455,6 +434,83 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             case "CN":
                 DrawSolid(pixels, width, height, new Color32(222, 41, 16, 255));
                 DrawDisc(pixels, width, height, new Vector2(width * 0.24f, height * 0.68f), 4f, new Color32(255, 222, 0, 255));
+                break;
+            case "AR":
+                DrawHorizontalBand(pixels, width, height, 0, height / 3, new Color32(116, 172, 223, 255));
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, Color.white);
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(116, 172, 223, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 2f, new Color32(246, 180, 14, 255));
+                break;
+            case "AU":
+                DrawSolid(pixels, width, height, new Color32(0, 32, 91, 255));
+                DrawRect(pixels, width, height, 0, height / 2, width / 2, height / 2, new Color32(1, 33, 105, 255));
+                DrawHorizontalBand(pixels, width, height, height * 3 / 4 - 1, 2, Color.white);
+                DrawVerticalBand(pixels, width, height, width / 4 - 1, 2, Color.white);
+                DrawDisc(pixels, width, height, new Vector2(width * 0.75f, height * 0.38f), 2.5f, Color.white);
+                break;
+            case "BR":
+                DrawSolid(pixels, width, height, new Color32(0, 156, 59, 255));
+                DrawDiamond(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 18f, 11f, new Color32(255, 223, 0, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 6f, new Color32(0, 39, 118, 255));
+                break;
+            case "CA":
+                DrawVerticalBand(pixels, width, height, 0, width / 4, new Color32(255, 0, 0, 255));
+                DrawVerticalBand(pixels, width, height, width / 4, width / 2, Color.white);
+                DrawVerticalBand(pixels, width, height, width * 3 / 4, width / 4, new Color32(255, 0, 0, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 4f, new Color32(255, 0, 0, 255));
+                break;
+            case "DE":
+                DrawHorizontalBand(pixels, width, height, 0, height / 3, new Color32(0, 0, 0, 255));
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, new Color32(221, 0, 0, 255));
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(255, 206, 0, 255));
+                break;
+            case "ES":
+                DrawHorizontalBand(pixels, width, height, 0, height / 4, new Color32(170, 21, 27, 255));
+                DrawHorizontalBand(pixels, width, height, height / 4, height / 2, new Color32(241, 191, 0, 255));
+                DrawHorizontalBand(pixels, width, height, height * 3 / 4, height / 4, new Color32(170, 21, 27, 255));
+                break;
+            case "GB":
+                DrawSolid(pixels, width, height, new Color32(1, 33, 105, 255));
+                DrawHorizontalBand(pixels, width, height, height / 2 - 3, 6, Color.white);
+                DrawVerticalBand(pixels, width, height, width / 2 - 3, 6, Color.white);
+                DrawHorizontalBand(pixels, width, height, height / 2 - 1, 2, new Color32(200, 16, 46, 255));
+                DrawVerticalBand(pixels, width, height, width / 2 - 1, 2, new Color32(200, 16, 46, 255));
+                break;
+            case "IL":
+                DrawSolid(pixels, width, height, Color.white);
+                DrawHorizontalBand(pixels, width, height, 4, 3, new Color32(0, 56, 184, 255));
+                DrawHorizontalBand(pixels, width, height, height - 7, 3, new Color32(0, 56, 184, 255));
+                DrawCircleRing(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 5f, new Color32(0, 56, 184, 255));
+                break;
+            case "IN":
+                DrawHorizontalBand(pixels, width, height, 0, height / 3, new Color32(255, 153, 51, 255));
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, Color.white);
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(19, 136, 8, 255));
+                DrawCircleRing(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 4f, new Color32(0, 0, 128, 255));
+                break;
+            case "IR":
+                DrawHorizontalBand(pixels, width, height, 0, height / 3, new Color32(35, 159, 64, 255));
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, Color.white);
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(218, 0, 0, 255));
+                break;
+            case "IT":
+                DrawVerticalBand(pixels, width, height, 0, width / 3, new Color32(0, 146, 70, 255));
+                DrawVerticalBand(pixels, width, height, width / 3, width / 3, Color.white);
+                DrawVerticalBand(pixels, width, height, width * 2 / 3, width - width * 2 / 3, new Color32(206, 43, 55, 255));
+                break;
+            case "RU":
+                DrawHorizontalBand(pixels, width, height, 0, height / 3, Color.white);
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, new Color32(0, 57, 166, 255));
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(213, 43, 30, 255));
+                break;
+            case "SA":
+                DrawSolid(pixels, width, height, new Color32(0, 108, 53, 255));
+                DrawHorizontalBand(pixels, width, height, height / 2, 2, Color.white);
+                break;
+            case "SE":
+                DrawSolid(pixels, width, height, new Color32(0, 106, 167, 255));
+                DrawHorizontalBand(pixels, width, height, height / 2 - 3, 6, new Color32(254, 204, 0, 255));
+                DrawVerticalBand(pixels, width, height, width / 3 - 3, 6, new Color32(254, 204, 0, 255));
                 break;
             default:
                 DrawUnitedStatesFlag(pixels, width, height);
@@ -517,6 +573,21 @@ public class SatelliteTleInfoPanel : MonoBehaviour
             {
                 Vector2 delta = new Vector2(x + 0.5f, y + 0.5f) - center;
                 if (delta.sqrMagnitude <= radiusSquared)
+                {
+                    pixels[y * width + x] = color;
+                }
+            }
+        }
+    }
+
+    static void DrawDiamond(Color32[] pixels, int width, int height, Vector2 center, float halfWidth, float halfHeight, Color32 color)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float normalized = Mathf.Abs((x + 0.5f - center.x) / halfWidth) + Mathf.Abs((y + 0.5f - center.y) / halfHeight);
+                if (normalized <= 1f)
                 {
                     pixels[y * width + x] = color;
                 }

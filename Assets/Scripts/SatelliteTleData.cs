@@ -220,68 +220,9 @@ public class SatelliteTleData
             return;
         }
 
-        switch (noradCatalogId)
+        if (SatelliteVisualMetadata.TryGetCatalogMetadata(noradCatalogId, out string country, out string owner, out string catalogName))
         {
-            case 25544:
-                SetMetadata("International", "International Space Station partners", "Crewed low Earth orbit space station");
-                break;
-            case 20580:
-                SetMetadata("United States", "NASA / ESA", "Hubble Space Telescope");
-                break;
-            case 25994:
-                SetMetadata("United States", "NASA / JAXA / ASTER partners", "Terra Earth-observing satellite");
-                break;
-            case 27424:
-                SetMetadata("United States", "NASA", "Aqua Earth-observing satellite");
-                break;
-            case 28376:
-                SetMetadata("United States", "NASA", "Aura atmospheric chemistry research satellite");
-                break;
-            case 29108:
-                SetMetadata("United States / France", "NASA / CNES", "CALIPSO cloud and aerosol lidar mission");
-                break;
-            case 33591:
-                SetMetadata("United States", "NOAA", "NOAA 19 polar-orbiting weather satellite");
-                break;
-            case 37849:
-                SetMetadata("United States", "NOAA / NASA", "Suomi NPP weather and climate observation satellite");
-                break;
-            case 39084:
-                SetMetadata("United States", "NASA / USGS", "Landsat 8 Earth-imaging satellite");
-                break;
-            case 40697:
-                SetMetadata("European Union", "European Space Agency", "Sentinel-2A multispectral Earth-observation satellite");
-                break;
-            case 39634:
-                SetMetadata("European Union", "European Space Agency", "Sentinel-1A synthetic aperture radar satellite");
-                break;
-            case 40069:
-                SetMetadata("United States / Japan", "NASA / JAXA", "GPM Core Observatory precipitation measurement mission");
-                break;
-            case 42063:
-                SetMetadata("European Union", "European Space Agency", "Sentinel-2B multispectral Earth-observation satellite");
-                break;
-            case 41884:
-                SetMetadata("United States", "NASA", "CYGNSS tropical cyclone monitoring satellite");
-                break;
-            case 42969:
-                SetMetadata("European Union", "European Space Agency", "Sentinel-5P atmospheric monitoring satellite");
-                break;
-            case 43613:
-                SetMetadata("United States", "NASA", "ICESat-2 laser altimetry mission");
-                break;
-            case 43476:
-                SetMetadata("United States", "NASA", "GRACE-FO geodesy and gravity field mission");
-                break;
-            case 49260:
-                SetMetadata("United States", "NASA / USGS", "Landsat 9 Earth-imaging satellite");
-                break;
-            case 54730:
-                SetMetadata("United States / France", "NASA / CNES", "SWOT surface water and ocean topography mission");
-                break;
-            case 48274:
-                SetMetadata("China", "China Manned Space Agency", "Tianhe core module of the Tiangong space station");
-                break;
+            SetMetadata(country, owner, catalogName);
         }
     }
 

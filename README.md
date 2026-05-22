@@ -150,7 +150,8 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 3. The scene loads the local `leo-sample.tle` catalog.
 4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
 5. The current demo configuration spawns 100 bright point-mass satellite markers and disables orbit paths.
-6. Hover over a satellite marker with the visible mouse crosshair to view country of origin, operator, mission, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
+6. Satellite marker colors indicate origin continent, with a key in the top-left corner.
+7. Hover over a satellite marker with the visible mouse crosshair to view country of origin, operator, mission, country flag markers, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
 
 To show more satellites later, raise or clear `SatelliteManager.maxSatellitesForTesting`. Keep `orbitLinesEnabled` off for a point-mass-only view.
 
@@ -220,7 +221,7 @@ Assets/Scripts/SatelliteTleInfoPanel.cs
 Flow:
 
 1. `SatelliteManager` spawns one marker per loaded satellite.
-2. Each marker receives a `SatelliteInfo` component containing its parsed `SatelliteTleData`.
+2. Each marker receives a `SatelliteInfo` component containing its parsed `SatelliteTleData` and continent color.
 3. `SatelliteHoverController` raycasts against satellite markers.
 4. The hovered marker is highlighted.
 5. Hover changes are emitted through a UnityEvent and a static C# event.

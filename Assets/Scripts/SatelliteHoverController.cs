@@ -53,6 +53,7 @@ public class SatelliteHoverController : MonoBehaviour
 
     SatelliteInfo hoveredSatellite;
     Transform highlightedTransform;
+    SatelliteInfo highlightedSatelliteInfo;
     Vector3 originalScale;
     MaterialPropertyBlock highlightPropertyBlock;
     RectTransform crosshairRect;
@@ -432,6 +433,7 @@ public class SatelliteHoverController : MonoBehaviour
     void ApplyHighlight(SatelliteInfo satellite)
     {
         highlightedTransform = satellite.transform;
+        highlightedSatelliteInfo = satellite;
         originalScale = highlightedTransform.localScale;
         highlightedTransform.localScale = originalScale * highlightedScaleMultiplier;
 
@@ -462,11 +464,15 @@ public class SatelliteHoverController : MonoBehaviour
             Renderer renderer = highlightedTransform.GetComponentInChildren<Renderer>();
             if (renderer != null)
             {
-                renderer.SetPropertyBlock(null);
+                Color markerColor = highlightedSatelliteInfo != null
+                    ? highlightedSatelliteInfo.MarkerColor
+                    : SatelliteVisualMetadata.GetContinentColor(null);
+                SatelliteManager.ApplyRendererColor(renderer, markerColor);
             }
         }
 
         highlightedTransform = null;
+        highlightedSatelliteInfo = null;
     }
 
     static Vector2 GetMousePositionOrCenter()

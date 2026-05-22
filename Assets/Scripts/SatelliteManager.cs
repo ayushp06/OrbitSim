@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SGPdotNET.Observation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class SatelliteManager : MonoBehaviour
 {
@@ -47,6 +48,13 @@ public class SatelliteManager : MonoBehaviour
     public Material satelliteMarkerMaterial;
     public bool shareMarkerMaterial = true;
 
+    [Header("Legend")]
+    public bool showContinentLegend = true;
+    public Vector2 legendScreenMargin = new Vector2(24f, 24f);
+    public Color legendPanelColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
+    public Color legendTextColor = new Color(0.92f, 0.96f, 1f, 1f);
+    public int legendFontSize = 14;
+
     [Header("Orbit Rendering")]
     public int orbitLineSegments = 96;
     public int maxOrbitLines = 64;
@@ -61,6 +69,7 @@ public class SatelliteManager : MonoBehaviour
     Transform cachedEarthReference;
     Transform cachedSatelliteParent;
     Transform cachedOrbitVisualsParent;
+    GameObject continentLegendObject;
     float positionUpdateTimer;
     int nextPositionUpdateIndex;
 
@@ -77,6 +86,7 @@ public class SatelliteManager : MonoBehaviour
     void Start()
     {
         ApplyEarthVisualScale();
+        BuildContinentLegend();
         StartCoroutine(LoadAndSpawnSatellitesAsync());
     }
 
@@ -372,18 +382,14 @@ public class SatelliteManager : MonoBehaviour
             info = marker.AddComponent<SatelliteInfo>();
         }
 
-        info.Initialize(tle);
-        ApplySharedMarkerMaterial(marker);
+        Color markerColor = SatelliteVisualMetadata.GetContinentColor(tle);
+        info.Initialize(tle, markerColor);
+        ApplyMarkerMaterialAndColor(marker, markerColor);
         return marker;
     }
 
-    void ApplySharedMarkerMaterial(GameObject marker)
+    void ApplyMarkerMaterialAndColor(GameObject marker, Color color)
     {
-        if (!shareMarkerMaterial)
-        {
-            return;
-        }
-
         Renderer markerRenderer = marker.GetComponent<Renderer>();
         if (markerRenderer == null)
         {
@@ -395,12 +401,31 @@ public class SatelliteManager : MonoBehaviour
             return;
         }
 
-        // Shared instancing-capable materials avoid per-marker material clones from primitive creation and custom prefabs.
-        Material material = GetSatelliteMarkerMaterial();
-        if (material != null)
+        if (shareMarkerMaterial)
         {
-            markerRenderer.sharedMaterial = material;
+            // Shared instancing-capable materials avoid per-marker material clones from primitive creation and custom prefabs.
+            Material material = GetSatelliteMarkerMaterial();
+            if (material != null)
+            {
+                markerRenderer.sharedMaterial = material;
+            }
         }
+
+        ApplyRendererColor(markerRenderer, color);
+    }
+
+    public static void ApplyRendererColor(Renderer targetRenderer, Color color)
+    {
+        if (targetRenderer == null)
+        {
+            return;
+        }
+
+        var block = new MaterialPropertyBlock();
+        block.SetColor("_Color", color);
+        block.SetColor("_BaseColor", color);
+        block.SetColor("_EmissionColor", color * 1.4f);
+        targetRenderer.SetPropertyBlock(block);
     }
 
     Material GetSatelliteMarkerMaterial()
@@ -473,6 +498,97 @@ public class SatelliteManager : MonoBehaviour
         }
 
         return sharedOrbitLineMaterial;
+    }
+
+    void BuildContinentLegend()
+    {
+        if (!showContinentLegend || continentLegendObject != null)
+        {
+            return;
+        }
+
+        continentLegendObject = new GameObject("Satellite Continent Legend Canvas");
+        continentLegendObject.transform.SetParent(transform, false);
+
+        Canvas canvas = continentLegendObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 900;
+
+        CanvasScaler scaler = continentLegendObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+
+        continentLegendObject.AddComponent<GraphicRaycaster>();
+
+        GameObject panelObject = new GameObject("Satellite Origin Key");
+        panelObject.transform.SetParent(continentLegendObject.transform, false);
+
+        RectTransform panelRect = panelObject.AddComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0f, 1f);
+        panelRect.anchorMax = new Vector2(0f, 1f);
+        panelRect.pivot = new Vector2(0f, 1f);
+        panelRect.anchoredPosition = new Vector2(legendScreenMargin.x, -legendScreenMargin.y);
+        panelRect.sizeDelta = new Vector2(210f, 238f);
+
+        Image panelImage = panelObject.AddComponent<Image>();
+        panelImage.color = legendPanelColor;
+
+        CreateLegendLabel(panelObject.transform, "Satellite Origin", new Vector2(14f, -12f), 16, FontStyle.Bold);
+
+        SatelliteVisualMetadata.LegendEntry[] entries = SatelliteVisualMetadata.LegendEntries;
+        for (int i = 0; i < entries.Length; i++)
+        {
+            float y = -44f - i * 26f;
+            CreateLegendSwatch(panelObject.transform, entries[i].color, new Vector2(16f, y));
+            CreateLegendLabel(panelObject.transform, entries[i].label, new Vector2(42f, y + 2f), legendFontSize, FontStyle.Normal);
+        }
+    }
+
+    void CreateLegendSwatch(Transform parent, Color color, Vector2 position)
+    {
+        GameObject swatchObject = new GameObject("Swatch");
+        swatchObject.transform.SetParent(parent, false);
+
+        RectTransform swatchRect = swatchObject.AddComponent<RectTransform>();
+        swatchRect.anchorMin = new Vector2(0f, 1f);
+        swatchRect.anchorMax = new Vector2(0f, 1f);
+        swatchRect.pivot = new Vector2(0f, 1f);
+        swatchRect.anchoredPosition = position;
+        swatchRect.sizeDelta = new Vector2(16f, 16f);
+
+        Image swatch = swatchObject.AddComponent<Image>();
+        swatch.color = color;
+        swatch.raycastTarget = false;
+    }
+
+    void CreateLegendLabel(Transform parent, string text, Vector2 position, int fontSize, FontStyle fontStyle)
+    {
+        GameObject labelObject = new GameObject(text);
+        labelObject.transform.SetParent(parent, false);
+
+        RectTransform labelRect = labelObject.AddComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0f, 1f);
+        labelRect.anchorMax = new Vector2(0f, 1f);
+        labelRect.pivot = new Vector2(0f, 1f);
+        labelRect.anchoredPosition = position;
+        labelRect.sizeDelta = new Vector2(154f, 22f);
+
+        Text label = labelObject.AddComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        if (label.font == null)
+        {
+            label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
+        label.fontSize = fontSize;
+        label.fontStyle = fontStyle;
+        label.color = legendTextColor;
+        label.alignment = TextAnchor.UpperLeft;
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Truncate;
+        label.raycastTarget = false;
     }
 
     void ClearRuntimeSatellites()
