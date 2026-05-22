@@ -1,6 +1,6 @@
 # OrbitSim
 
-OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene loads a bundled 100-satellite LEO sample catalog from StreamingAssets. The app propagates satellite positions around Earth, renders satellite markers, and shows origin and TLE details when a user hovers over a satellite.
+OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene loads a bundled 150-satellite LEO sample catalog from StreamingAssets. The app propagates satellite positions around Earth, renders satellite markers, and shows origin and TLE details when a user hovers over a satellite.
 
 ## Required Unity Version
 
@@ -149,7 +149,7 @@ Use `SatelliteManager.maxSatellitesForTesting` to limit the number of loaded mar
 2. Press Play in the Unity Editor.
 3. The scene loads the local `leo-sample.tle` catalog.
 4. `SatelliteManager` filters likely LEO satellites when `showOnlyLeoSatellites` is enabled.
-5. The current demo configuration spawns 100 bright point-mass satellite markers and disables orbit paths.
+5. The current demo configuration spawns 150 bright point-mass satellite markers and disables orbit paths.
 6. Satellite marker colors indicate origin continent, with a key in the top-left corner.
 7. Hover over a satellite marker with the visible mouse crosshair to view country of origin, operator, mission, country flag markers, TLE source, parsed orbital fields, and raw TLE lines in the top-right panel.
 
@@ -252,7 +252,7 @@ The scene uses a readable visualization scale:
 Important `SatelliteManager` settings:
 
 - `showOnlyLeoSatellites`: filters spawned markers to likely LEO satellites.
-- `maxSatellitesForTesting`: limits marker count for performance testing. The current demo uses `100`.
+- `maxSatellitesForTesting`: limits marker count for performance testing. The current demo uses `150`.
 - `orbitLinesEnabled`: enables or disables orbit lines. The current demo keeps this off for point-mass-only satellite visuals.
 - `maxOrbitLines`: caps orbit line count.
 - `satellitePositionUpdateInterval`: controls how often marker positions update.
@@ -266,7 +266,7 @@ Markers are spawned once and updated centrally. Marker transforms are cached so 
 - Full VR package setup is not complete. OpenXR, XR Plugin Management, and XR Interaction Toolkit still need to be added for production VR controller workflows.
 - SGP.NET is available and used when possible, but orbit-line previews and fallback propagation are approximate Keplerian visualizations.
 - The scale model intentionally exaggerates LEO altitude unless `orbitAltitudeExaggeration` is set to `1`.
-- The included TLE file is a curated 100-satellite LEO sample, not a complete live catalog.
+- The included TLE file is a curated 150-satellite LEO sample, not a complete live catalog.
 - Runtime TLE download depends on network access to CelesTrak; offline runs use the local fallback.
 - Very large catalogs may still need pooling, GPU instanced mesh rendering, culling, and deeper profiling for VR frame rates.
 

@@ -535,60 +535,122 @@ public class SatelliteManager : MonoBehaviour
         Image panelImage = panelObject.AddComponent<Image>();
         panelImage.color = legendPanelColor;
 
-        CreateLegendLabel(panelObject.transform, "Satellite Origin", new Vector2(14f, -12f), 16, FontStyle.Bold);
+        GameObject textureObject = new GameObject("Legend Texture");
+        textureObject.transform.SetParent(panelObject.transform, false);
+
+        RectTransform textureRect = textureObject.AddComponent<RectTransform>();
+        textureRect.anchorMin = new Vector2(0f, 1f);
+        textureRect.anchorMax = new Vector2(0f, 1f);
+        textureRect.pivot = new Vector2(0f, 1f);
+        textureRect.anchoredPosition = new Vector2(12f, -12f);
+        textureRect.sizeDelta = new Vector2(266f, 232f);
+
+        RawImage legendImage = textureObject.AddComponent<RawImage>();
+        legendImage.texture = CreateLegendTexture();
+        legendImage.raycastTarget = false;
+    }
+
+    Texture2D CreateLegendTexture()
+    {
+        const int width = 266;
+        const int height = 232;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color32[] pixels = new Color32[width * height];
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = Color.clear;
+        }
+
+        DrawBitmapText(pixels, width, height, 2, 2, "SATELLITE ORIGIN", Color.white, 2);
 
         SatelliteVisualMetadata.LegendEntry[] entries = SatelliteVisualMetadata.LegendEntries;
         for (int i = 0; i < entries.Length; i++)
         {
-            float y = -46f - i * 28f;
-            CreateLegendSwatch(panelObject.transform, entries[i].color, new Vector2(16f, y));
-            CreateLegendLabel(panelObject.transform, entries[i].label, new Vector2(46f, y + 2f), legendFontSize, FontStyle.Normal);
+            int y = 36 + i * 28;
+            DrawBitmapRect(pixels, width, height, 4, y + 1, 18, 18, entries[i].color);
+            DrawBitmapText(pixels, width, height, 34, y + 3, entries[i].label.ToUpperInvariant(), Color.white, 2);
         }
+
+        texture.SetPixels32(pixels);
+        texture.Apply();
+        return texture;
     }
 
-    void CreateLegendSwatch(Transform parent, Color color, Vector2 position)
+    static void DrawBitmapRect(Color32[] pixels, int width, int height, int x, int y, int rectWidth, int rectHeight, Color32 color)
     {
-        GameObject swatchObject = new GameObject("Swatch");
-        swatchObject.transform.SetParent(parent, false);
-
-        RectTransform swatchRect = swatchObject.AddComponent<RectTransform>();
-        swatchRect.anchorMin = new Vector2(0f, 1f);
-        swatchRect.anchorMax = new Vector2(0f, 1f);
-        swatchRect.pivot = new Vector2(0f, 1f);
-        swatchRect.anchoredPosition = position;
-        swatchRect.sizeDelta = new Vector2(16f, 16f);
-
-        Image swatch = swatchObject.AddComponent<Image>();
-        swatch.color = color;
-        swatch.raycastTarget = false;
-    }
-
-    void CreateLegendLabel(Transform parent, string text, Vector2 position, int fontSize, FontStyle fontStyle)
-    {
-        GameObject labelObject = new GameObject(text);
-        labelObject.transform.SetParent(parent, false);
-
-        RectTransform labelRect = labelObject.AddComponent<RectTransform>();
-        labelRect.anchorMin = new Vector2(0f, 1f);
-        labelRect.anchorMax = new Vector2(0f, 1f);
-        labelRect.pivot = new Vector2(0f, 1f);
-        labelRect.anchoredPosition = position;
-        labelRect.sizeDelta = new Vector2(224f, 24f);
-
-        Text label = labelObject.AddComponent<Text>();
-        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (label.font == null)
+        int maxX = Mathf.Min(width, x + rectWidth);
+        int maxY = Mathf.Min(height, y + rectHeight);
+        for (int py = Mathf.Max(0, y); py < maxY; py++)
         {
-            label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            for (int px = Mathf.Max(0, x); px < maxX; px++)
+            {
+                pixels[py * width + px] = color;
+            }
         }
+    }
 
-        label.fontSize = fontSize;
-        label.fontStyle = fontStyle;
-        label.color = legendTextColor;
-        label.alignment = TextAnchor.UpperLeft;
-        label.horizontalOverflow = HorizontalWrapMode.Wrap;
-        label.verticalOverflow = VerticalWrapMode.Overflow;
-        label.raycastTarget = false;
+    static void DrawBitmapText(Color32[] pixels, int width, int height, int x, int y, string text, Color32 color, int scale)
+    {
+        int cursor = x;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (c == ' ')
+            {
+                cursor += 4 * scale;
+                continue;
+            }
+
+            string[] glyph = GetGlyph(c);
+            for (int row = 0; row < glyph.Length; row++)
+            {
+                for (int col = 0; col < glyph[row].Length; col++)
+                {
+                    if (glyph[row][col] != '1')
+                    {
+                        continue;
+                    }
+
+                    DrawBitmapRect(pixels, width, height, cursor + col * scale, y + row * scale, scale, scale, color);
+                }
+            }
+
+            cursor += 6 * scale;
+        }
+    }
+
+    static string[] GetGlyph(char character)
+    {
+        switch (char.ToUpperInvariant(character))
+        {
+            case 'A': return new[] { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };
+            case 'B': return new[] { "11110", "10001", "10001", "11110", "10001", "10001", "11110" };
+            case 'C': return new[] { "01111", "10000", "10000", "10000", "10000", "10000", "01111" };
+            case 'D': return new[] { "11110", "10001", "10001", "10001", "10001", "10001", "11110" };
+            case 'E': return new[] { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
+            case 'F': return new[] { "11111", "10000", "10000", "11110", "10000", "10000", "10000" };
+            case 'G': return new[] { "01111", "10000", "10000", "10111", "10001", "10001", "01111" };
+            case 'H': return new[] { "10001", "10001", "10001", "11111", "10001", "10001", "10001" };
+            case 'I': return new[] { "11111", "00100", "00100", "00100", "00100", "00100", "11111" };
+            case 'K': return new[] { "10001", "10010", "10100", "11000", "10100", "10010", "10001" };
+            case 'L': return new[] { "10000", "10000", "10000", "10000", "10000", "10000", "11111" };
+            case 'M': return new[] { "10001", "11011", "10101", "10101", "10001", "10001", "10001" };
+            case 'N': return new[] { "10001", "11001", "10101", "10011", "10001", "10001", "10001" };
+            case 'O': return new[] { "01110", "10001", "10001", "10001", "10001", "10001", "01110" };
+            case 'P': return new[] { "11110", "10001", "10001", "11110", "10000", "10000", "10000" };
+            case 'R': return new[] { "11110", "10001", "10001", "11110", "10100", "10010", "10001" };
+            case 'S': return new[] { "01111", "10000", "10000", "01110", "00001", "00001", "11110" };
+            case 'T': return new[] { "11111", "00100", "00100", "00100", "00100", "00100", "00100" };
+            case 'U': return new[] { "10001", "10001", "10001", "10001", "10001", "10001", "01110" };
+            case 'W': return new[] { "10001", "10001", "10001", "10101", "10101", "10101", "01010" };
+            case 'Y': return new[] { "10001", "10001", "01010", "00100", "00100", "00100", "00100" };
+            default: return new[] { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
+        }
     }
 
     void ClearRuntimeSatellites()

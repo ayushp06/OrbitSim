@@ -38,16 +38,20 @@ public static class SatelliteVisualMetadata
         { "FR", new OwnerInfo("France", "France") },
         { "GER", new OwnerInfo("Germany", "Germany") },
         { "IND", new OwnerInfo("India", "India") },
+        { "INDO", new OwnerInfo("Indonesia", "Indonesia") },
         { "IRAN", new OwnerInfo("Iran", "Iran") },
         { "ISRA", new OwnerInfo("Israel", "Israel") },
         { "ISS", new OwnerInfo("International", "International Space Station partners") },
         { "IT", new OwnerInfo("Italy", "Italy") },
         { "JPN", new OwnerInfo("Japan", "Japan") },
+        { "GLOB", new OwnerInfo("International", "Globalstar") },
         { "ORB", new OwnerInfo("United States", "ORBCOMM") },
         { "PRC", new OwnerInfo("China", "China") },
         { "SAUD", new OwnerInfo("Saudi Arabia", "Saudi Arabia") },
+        { "SKOR", new OwnerInfo("South Korea", "South Korea") },
         { "SPN", new OwnerInfo("Spain", "Spain") },
         { "SWED", new OwnerInfo("Sweden", "Sweden") },
+        { "THAI", new OwnerInfo("Thailand", "Thailand") },
         { "UK", new OwnerInfo("United Kingdom", "United Kingdom") },
         { "US", new OwnerInfo("United States", "United States") },
     };
@@ -145,7 +149,57 @@ public static class SatelliteVisualMetadata
             case 28810: return BuildMetadata("JPN", "REIMEI (INDEX)", out country, out ownerOperator, out mission);
             case 28890: return BuildMetadata("PRC", "BEIJING 1", out country, out ownerOperator, out mission);
             case 28893: return BuildMetadata("IRAN", "SINAH 1", out country, out ownerOperator, out mission);
+            case 28895: return BuildMetadata("JPN", "CUBESAT XI-V", out country, out ownerOperator, out mission);
+            case 28908: return BuildMetadata("CIS", "COSMOS 2416 (RODNIK-S 1)", out country, out ownerOperator, out mission);
             case 29108: return BuildMetadata("FR", "CALIPSO", out country, out ownerOperator, out mission);
+            case 29228: return BuildMetadata("CIS", "RESURS-DK 1", out country, out ownerOperator, out mission);
+            case 29268: return BuildMetadata("SKOR", "ARIRANG-2 (KOMPSAT-2)", out country, out ownerOperator, out mission);
+            case 29479: return BuildMetadata("JPN", "HINODE (SOLAR-B)", out country, out ownerOperator, out mission);
+            case 29505: return BuildMetadata("PRC", "SHIJIAN-6 02A (SJ-6 02A)", out country, out ownerOperator, out mission);
+            case 29506: return BuildMetadata("PRC", "SHIJIAN-6 02B (SJ-6 02B)", out country, out ownerOperator, out mission);
+            case 29522: return BuildMetadata("US", "DMSP 5D-3 F17 (USA 191)", out country, out ownerOperator, out mission);
+            case 29709: return BuildMetadata("INDO", "LAPAN-TUBSAT", out country, out ownerOperator, out mission);
+            case 31113: return BuildMetadata("PRC", "HAIYANG-1B", out country, out ownerOperator, out mission);
+            case 31118: return BuildMetadata("SAUD", "SAUDISAT 3", out country, out ownerOperator, out mission);
+            case 31119: return BuildMetadata("SAUD", "SAUDICOMSAT 7", out country, out ownerOperator, out mission);
+            case 31121: return BuildMetadata("SAUD", "SAUDICOMSAT 6", out country, out ownerOperator, out mission);
+            case 31124: return BuildMetadata("SAUD", "SAUDICOMSAT 5", out country, out ownerOperator, out mission);
+            case 31125: return BuildMetadata("SAUD", "SAUDICOMSAT 3", out country, out ownerOperator, out mission);
+            case 31127: return BuildMetadata("SAUD", "SAUDICOMSAT 4", out country, out ownerOperator, out mission);
+            case 31490: return BuildMetadata("PRC", "YAOGAN-2", out country, out ownerOperator, out mission);
+            case 31573: return BuildMetadata("GLOB", "GLOBALSTAR M069", out country, out ownerOperator, out mission);
+            case 31574: return BuildMetadata("GLOB", "GLOBALSTAR M072", out country, out ownerOperator, out mission);
+            case 31598: return BuildMetadata("IT", "COSMO-SKYMED 1", out country, out ownerOperator, out mission);
+            case 31698: return BuildMetadata("GER", "TERRASAR-X", out country, out ownerOperator, out mission);
+            case 31792: return BuildMetadata("CIS", "COSMOS 2428", out country, out ownerOperator, out mission);
+            case 31797: return BuildMetadata("GER", "SAR-LUPE 2", out country, out ownerOperator, out mission);
+            case 32060: return BuildMetadata("US", "WORLDVIEW-1 (WV-1)", out country, out ownerOperator, out mission);
+            case 32265: return BuildMetadata("GLOB", "GLOBALSTAR M066", out country, out ownerOperator, out mission);
+            case 32289: return BuildMetadata("PRC", "YAOGAN-3", out country, out ownerOperator, out mission);
+            case 32376: return BuildMetadata("IT", "COSMO-SKYMED 2", out country, out ownerOperator, out mission);
+            case 32382: return BuildMetadata("CA", "RADARSAT-2", out country, out ownerOperator, out mission);
+            case 32783: return BuildMetadata("IND", "CARTOSAT-2A", out country, out ownerOperator, out mission);
+            case 32785: return BuildMetadata("JPN", "CUTE-1.7+APD II (CO-65)", out country, out ownerOperator, out mission);
+            case 32790: return BuildMetadata("CA", "CANX-2", out country, out ownerOperator, out mission);
+            case 32791: return BuildMetadata("JPN", "SEEDS II (CO-66)", out country, out ownerOperator, out mission);
+            case 32953: return BuildMetadata("CIS", "YUBILEINY (RS30)", out country, out ownerOperator, out mission);
+            case 32954: return BuildMetadata("CIS", "COSMOS 2437", out country, out ownerOperator, out mission);
+            case 32955: return BuildMetadata("CIS", "COSMOS 2438", out country, out ownerOperator, out mission);
+            case 32956: return BuildMetadata("CIS", "COSMOS 2439", out country, out ownerOperator, out mission);
+            case 32958: return BuildMetadata("PRC", "FENGYUN 3A", out country, out ownerOperator, out mission);
+            case 33053: return BuildMetadata("US", "FGRST (GLAST)", out country, out ownerOperator, out mission);
+            case 33320: return BuildMetadata("PRC", "HUANJING 1A (HJ-1A)", out country, out ownerOperator, out mission);
+            case 33321: return BuildMetadata("PRC", "HUANJING 1B (HJ-1B)", out country, out ownerOperator, out mission);
+            case 33331: return BuildMetadata("US", "GEOEYE 1", out country, out ownerOperator, out mission);
+            case 33396: return BuildMetadata("THAI", "THEOS", out country, out ownerOperator, out mission);
+            case 33408: return BuildMetadata("PRC", "SHIJIAN-6 03A (SJ-6 03A)", out country, out ownerOperator, out mission);
+            case 33409: return BuildMetadata("PRC", "SHIJIAN-6 03B (SJ-6 03B)", out country, out ownerOperator, out mission);
+            case 33412: return BuildMetadata("IT", "COSMO-SKYMED 3", out country, out ownerOperator, out mission);
+            case 33433: return BuildMetadata("PRC", "SHIYAN-3 (SY-3)", out country, out ownerOperator, out mission);
+            case 33434: return BuildMetadata("PRC", "CHUANGXIN 1-02 (CX-1-02)", out country, out ownerOperator, out mission);
+            case 33446: return BuildMetadata("PRC", "YAOGAN-4", out country, out ownerOperator, out mission);
+            case 33492: return BuildMetadata("JPN", "GOSAT (IBUKI)", out country, out ownerOperator, out mission);
+            case 33498: return BuildMetadata("JPN", "STARS (KUKAI)", out country, out ownerOperator, out mission);
             case 33591: return BuildMetadata("US", "NOAA 19", out country, out ownerOperator, out mission);
             case 37849: return BuildMetadata("US", "SUOMI NPP", out country, out ownerOperator, out mission);
             case 39084: return BuildMetadata("US", "LANDSAT 8", out country, out ownerOperator, out mission);
@@ -250,6 +304,7 @@ public static class SatelliteVisualMetadata
             case "France": return "FR";
             case "Germany": return "DE";
             case "India": return "IN";
+            case "Indonesia": return "ID";
             case "International": return "INTL";
             case "Iran": return "IR";
             case "Israel": return "IL";
@@ -258,8 +313,10 @@ public static class SatelliteVisualMetadata
             case "Russia":
             case "Russia / CIS": return "RU";
             case "Saudi Arabia": return "SA";
+            case "South Korea": return "KR";
             case "Spain": return "ES";
             case "Sweden": return "SE";
+            case "Thailand": return "TH";
             case "United Kingdom": return "GB";
             case "United States": return "US";
             default: return string.Empty;
@@ -291,8 +348,11 @@ public static class SatelliteVisualMetadata
             case "IN":
             case "IR":
             case "JP":
+            case "KR":
             case "RU":
             case "SA":
+            case "TH":
+            case "ID":
                 return "Asia";
             default:
                 return "Unknown";

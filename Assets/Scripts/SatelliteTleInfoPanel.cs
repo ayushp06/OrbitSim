@@ -488,6 +488,10 @@ public class SatelliteTleInfoPanel : MonoBehaviour
                 DrawHorizontalBand(pixels, width, height, height * 2 / 3, height - height * 2 / 3, new Color32(19, 136, 8, 255));
                 DrawCircleRing(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 4f, new Color32(0, 0, 128, 255));
                 break;
+            case "ID":
+                DrawHorizontalBand(pixels, width, height, 0, height / 2, new Color32(206, 17, 38, 255));
+                DrawHorizontalBand(pixels, width, height, height / 2, height - height / 2, Color.white);
+                break;
             case "IR":
                 DrawHorizontalBand(pixels, width, height, 0, height / 3, new Color32(35, 159, 64, 255));
                 DrawHorizontalBand(pixels, width, height, height / 3, height / 3, Color.white);
@@ -497,6 +501,13 @@ public class SatelliteTleInfoPanel : MonoBehaviour
                 DrawVerticalBand(pixels, width, height, 0, width / 3, new Color32(0, 146, 70, 255));
                 DrawVerticalBand(pixels, width, height, width / 3, width / 3, Color.white);
                 DrawVerticalBand(pixels, width, height, width * 2 / 3, width - width * 2 / 3, new Color32(206, 43, 55, 255));
+                break;
+            case "KR":
+                DrawSolid(pixels, width, height, Color.white);
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f), 6f, new Color32(205, 46, 58, 255));
+                DrawDisc(pixels, width, height, new Vector2(width * 0.5f, height * 0.5f - 3f), 3f, new Color32(0, 71, 160, 255));
+                DrawRect(pixels, width, height, 9, 8, 9, 2, Color.black);
+                DrawRect(pixels, width, height, width - 18, height - 10, 9, 2, Color.black);
                 break;
             case "RU":
                 DrawHorizontalBand(pixels, width, height, 0, height / 3, Color.white);
@@ -511,6 +522,13 @@ public class SatelliteTleInfoPanel : MonoBehaviour
                 DrawSolid(pixels, width, height, new Color32(0, 106, 167, 255));
                 DrawHorizontalBand(pixels, width, height, height / 2 - 3, 6, new Color32(254, 204, 0, 255));
                 DrawVerticalBand(pixels, width, height, width / 3 - 3, 6, new Color32(254, 204, 0, 255));
+                break;
+            case "TH":
+                DrawHorizontalBand(pixels, width, height, 0, height / 6, new Color32(165, 25, 49, 255));
+                DrawHorizontalBand(pixels, width, height, height / 6, height / 6, Color.white);
+                DrawHorizontalBand(pixels, width, height, height / 3, height / 3, new Color32(45, 42, 74, 255));
+                DrawHorizontalBand(pixels, width, height, height * 2 / 3, height / 6, Color.white);
+                DrawHorizontalBand(pixels, width, height, height * 5 / 6, height - height * 5 / 6, new Color32(165, 25, 49, 255));
                 break;
             default:
                 DrawUnitedStatesFlag(pixels, width, height);
