@@ -51,9 +51,9 @@ public class SatelliteManager : MonoBehaviour
     [Header("Legend")]
     public bool showContinentLegend = true;
     public Vector2 legendScreenMargin = new Vector2(24f, 24f);
-    public Color legendPanelColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
-    public Color legendTextColor = new Color(0.92f, 0.96f, 1f, 1f);
-    public int legendFontSize = 14;
+    public Color legendPanelColor = new Color(0.02f, 0.03f, 0.05f, 0.88f);
+    public Color legendTextColor = Color.white;
+    public int legendFontSize = 16;
 
     [Header("Orbit Rendering")]
     public int orbitLineSegments = 96;
@@ -530,7 +530,7 @@ public class SatelliteManager : MonoBehaviour
         panelRect.anchorMax = new Vector2(0f, 1f);
         panelRect.pivot = new Vector2(0f, 1f);
         panelRect.anchoredPosition = new Vector2(legendScreenMargin.x, -legendScreenMargin.y);
-        panelRect.sizeDelta = new Vector2(210f, 238f);
+        panelRect.sizeDelta = new Vector2(290f, 256f);
 
         Image panelImage = panelObject.AddComponent<Image>();
         panelImage.color = legendPanelColor;
@@ -540,9 +540,9 @@ public class SatelliteManager : MonoBehaviour
         SatelliteVisualMetadata.LegendEntry[] entries = SatelliteVisualMetadata.LegendEntries;
         for (int i = 0; i < entries.Length; i++)
         {
-            float y = -44f - i * 26f;
+            float y = -46f - i * 28f;
             CreateLegendSwatch(panelObject.transform, entries[i].color, new Vector2(16f, y));
-            CreateLegendLabel(panelObject.transform, entries[i].label, new Vector2(42f, y + 2f), legendFontSize, FontStyle.Normal);
+            CreateLegendLabel(panelObject.transform, entries[i].label, new Vector2(46f, y + 2f), legendFontSize, FontStyle.Normal);
         }
     }
 
@@ -573,7 +573,7 @@ public class SatelliteManager : MonoBehaviour
         labelRect.anchorMax = new Vector2(0f, 1f);
         labelRect.pivot = new Vector2(0f, 1f);
         labelRect.anchoredPosition = position;
-        labelRect.sizeDelta = new Vector2(154f, 22f);
+        labelRect.sizeDelta = new Vector2(224f, 24f);
 
         Text label = labelObject.AddComponent<Text>();
         label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -586,8 +586,8 @@ public class SatelliteManager : MonoBehaviour
         label.fontStyle = fontStyle;
         label.color = legendTextColor;
         label.alignment = TextAnchor.UpperLeft;
-        label.horizontalOverflow = HorizontalWrapMode.Overflow;
-        label.verticalOverflow = VerticalWrapMode.Truncate;
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
         label.raycastTarget = false;
     }
 

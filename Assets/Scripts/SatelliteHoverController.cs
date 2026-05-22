@@ -43,7 +43,7 @@ public class SatelliteHoverController : MonoBehaviour
     public float crosshairThickness = 1f;
 
     [Header("Highlight")]
-    public Color highlightColor = new Color(0.2f, 1f, 1f, 1f);
+    public Color highlightColor = new Color(1f, 0f, 0.85f, 1f);
     public float highlightedScaleMultiplier = 1f;
 
     [Header("Events")]

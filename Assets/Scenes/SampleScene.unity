@@ -745,6 +745,11 @@ MonoBehaviour:
   markerScale: 0.65
   satelliteMarkerMaterial: {fileID: 0}
   shareMarkerMaterial: 1
+  showContinentLegend: 1
+  legendScreenMargin: {x: 24, y: 24}
+  legendPanelColor: {r: 0.02, g: 0.03, b: 0.05, a: 0.88}
+  legendTextColor: {r: 1, g: 1, b: 1, a: 1}
+  legendFontSize: 16
   orbitLineSegments: 96
   maxOrbitLines: 64
   orbitLineWidth: 0.025
@@ -782,7 +787,7 @@ MonoBehaviour:
   crosshairColor: {r: 0.95, g: 1, b: 1, a: 0.9}
   crosshairSize: 8
   crosshairThickness: 1
-  highlightColor: {r: 0.2, g: 1, b: 1, a: 1}
+  highlightColor: {r: 1, g: 0, b: 0.85, a: 1}
   highlightedScaleMultiplier: 1
   onHoveredSatelliteChanged:
     m_PersistentCalls:
