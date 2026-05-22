@@ -2,6 +2,35 @@
 
 OrbitSim is a Unity VR/desktop simulation for visualizing LEO satellites around a 3D Earth globe in space. The default scene loads a bundled 150-satellite LEO sample catalog from StreamingAssets. The app propagates satellite positions around Earth, renders satellite markers, and shows origin and TLE details when a user hovers over a satellite.
 
+## Download And Run
+
+For users who only want to run the program, download the GitHub release asset:
+
+```text
+Application.zip
+```
+
+Extract the zip file, open the extracted `Application` folder, and run:
+
+```text
+EarthSatOrbitSim.exe
+```
+
+Do not move `EarthSatOrbitSim.exe` out of the `Application` folder. It must stay beside `UnityPlayer.dll`, `MonoBleedingEdge`, and `EarthSatOrbitSim_Data` so Unity can load the scene, scripts, and bundled satellite catalog.
+
+Basic controls:
+
+- Move the mouse to look around.
+- `W`, `A`, `S`, `D`: move the camera.
+- `Space`: move up.
+- `Left Shift` or `Right Shift`: move down.
+- `Left Ctrl`: move faster.
+- `Escape`: toggle cursor lock.
+- `P`: pause or resume simulation time.
+- `=` or numpad `+`: increase simulation speed.
+- `-` or numpad `-`: decrease simulation speed.
+- Aim the center crosshair at a satellite to show its origin, operator, flag, orbital fields, and raw TLE lines.
+
 ## Required Unity Version
 
 Open this project with Unity:
@@ -158,6 +187,38 @@ Application\EarthSatOrbitSim.exe
 ```
 
 Keep `EarthSatOrbitSim.exe`, `UnityPlayer.dll`, and the `EarthSatOrbitSim_Data` folder together in the `Application` folder. Unity builds load scenes, managed assemblies, and the bundled `StreamingAssets` TLE catalog from that adjacent data folder.
+
+## Preparing A GitHub Release
+
+Use the repository's root-level `Application` folder as the release build folder.
+
+1. Open the project in Unity.
+2. Open **File > Build Profiles** or **File > Build Settings**.
+3. Select the Windows desktop target.
+4. Build directly into:
+
+```text
+D:\Unity\EarthSatOrbitSim\Application
+```
+
+5. Confirm the folder contains:
+
+```text
+Application\EarthSatOrbitSim.exe
+Application\UnityPlayer.dll
+Application\MonoBleedingEdge\
+Application\EarthSatOrbitSim_Data\
+```
+
+6. From the repository root, recreate the release zip:
+
+```powershell
+Compress-Archive -Path Application\* -DestinationPath Application.zip -Force
+```
+
+7. Create a GitHub release and upload `Application.zip` as the release asset.
+
+GitHub release users should download `Application.zip`, extract it, and run `EarthSatOrbitSim.exe` from inside the extracted `Application` folder.
 
 ## Running The Scene
 
