@@ -733,7 +733,7 @@ MonoBehaviour:
   timeScale: 120
   simulationSpeedMultiplier: 1
   simulationPaused: 0
-  maxSatellitesForTesting: 30
+  maxSatellitesForTesting: 40
   orbitLinesEnabled: 0
   satellitePositionUpdateInterval: 0
   maxSatellitePositionUpdatesPerFrame: 0
